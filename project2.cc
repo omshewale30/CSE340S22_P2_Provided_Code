@@ -114,7 +114,6 @@
 using namespace std;
 
 
-//pre-definition
 void parse_Grammar();
 void parse_Rule_list();
 vector<string> parse_Id_list(vector<string> vector1);
