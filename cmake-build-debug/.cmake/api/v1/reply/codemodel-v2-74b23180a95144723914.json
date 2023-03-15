@@ -1,0 +1,60 @@
+{
+	"configurations" : 
+	[
+		{
+			"directories" : 
+			[
+				{
+					"build" : ".",
+					"jsonFile" : "directory-.-Debug-f5ebdc15457944623624.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.23"
+					},
+					"projectIndex" : 0,
+					"source" : ".",
+					"targetIndexes" : 
+					[
+						0
+					]
+				}
+			],
+			"name" : "Debug",
+			"projects" : 
+			[
+				{
+					"directoryIndexes" : 
+					[
+						0
+					],
+					"name" : "CSE340S22_P2_Provided_Code",
+					"targetIndexes" : 
+					[
+						0
+					]
+				}
+			],
+			"targets" : 
+			[
+				{
+					"directoryIndex" : 0,
+					"id" : "CSE340S22_P2_Provided_Code::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-CSE340S22_P2_Provided_Code-Debug-113cf55745bd43d29b24.json",
+					"name" : "CSE340S22_P2_Provided_Code",
+					"projectIndex" : 0
+				}
+			]
+		}
+	],
+	"kind" : "codemodel",
+	"paths" : 
+	{
+		"build" : "/Users/omshewale/Desktop/CSE 340/Project 2/CSE340S22_P2_Provided_Code/cmake-build-debug",
+		"source" : "/Users/omshewale/Desktop/CSE 340/Project 2/CSE340S22_P2_Provided_Code"
+	},
+	"version" : 
+	{
+		"major" : 2,
+		"minor" : 4
+	}
+}
