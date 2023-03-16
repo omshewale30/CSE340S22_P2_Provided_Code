@@ -125,7 +125,6 @@ void addNonTerminals(string element_to_check1);
 
 Token expect(TokenType expected_type);
 LexicalAnalyzer lexer;
-//string terminals_nonterminals = "";
 vector<string> terminals;
 vector<string> non_terms;
 vector<string> all_term;
@@ -156,16 +155,14 @@ void ReadGrammar()
     symbols.push_back("$");
     for (auto i: terminals)
     {
-        if (!count(non_terms.begin(), non_terms.end(), i)) {
-
+        if(!(find(non_terms.begin(), non_terms.end(), i) != non_terms.end()))  { //adding all terminals not present in non_terms in symbols
             symbols.push_back(i);
         }
 
     }
-
     for (auto i: all_term)
     {
-        if (count(non_terms.begin(), non_terms.end(), i)) {
+        if (find(non_terms.begin(), non_terms.end(), i) != non_terms.end()) { //adding common items in all_terms and non_terms in symbols
             symbols.push_back(i);
         }
     }
@@ -197,6 +194,26 @@ void parse_Rule_list()
     }
 
 }
+void parse_Rule()
+{
+    vector<string> rule;
+    Token t = expect(ID);
+    rule.push_back(t.lexeme);
+    addNonTerminals(t.lexeme);
+    expect(ARROW);
+    rule = parseRHS(rule);
+    rules.push_back(rule);
+    expect(STAR);
+    return;
+}
+
+Token expect(TokenType expected_type)
+{
+    Token t = lexer.GetToken();
+    if (t.token_type != expected_type)
+        syntax_error();
+    return t;
+}
 
 vector<string> parse_Id_list(vector<string> vector1)
 {
@@ -218,19 +235,6 @@ vector<string> parse_Id_list(vector<string> vector1)
         syntax_error();
 }
 
-void parse_Rule()
-{
-    vector<string> rule;
-    Token t = expect(ID);
-    rule.push_back(t.lexeme);
-    addNonTerminals(t.lexeme);
-    expect(ARROW);
-    rule = parseRHS(rule);
-
-    rules.push_back(rule);
-    expect(STAR);
-    return;
-}
 
 vector<string> parseRHS(vector<string> v1)
 {
@@ -255,13 +259,6 @@ void syntax_error()
     exit(1);
 }
 
-Token expect(TokenType expected_type)
-{
-    Token t = lexer.GetToken();
-    if (t.token_type != expected_type)
-        syntax_error();
-    return t;
-}
 
 void addTerminals(string element_to_check1)
 {
@@ -910,6 +907,8 @@ void CheckIfGrammarHasPredictiveParser()
     }
     cout << "YES\n";
 }
+
+
 
 int main (int argc, char* argv[])
 {
