@@ -127,7 +127,7 @@ Token expect(TokenType expected_type);
 LexicalAnalyzer lexer;
 vector<string> terminals;
 vector<string> non_terms;
-vector<string> all_term;
+vector<string> all_elements;
 vector<string> symbols;
 vector<bool> generating_table;
 vector<string> reachable_symbols;
@@ -160,7 +160,7 @@ void ReadGrammar()
         }
 
     }
-    for (auto i: all_term)
+    for (auto i: all_elements)
     {
         if (find(non_terms.begin(), non_terms.end(), i) != non_terms.end()) { //adding common items in all_terms and non_terms in symbols
             symbols.push_back(i);
@@ -198,9 +198,9 @@ void parse_Rule()
 {
     vector<string> rule;  //create vector for rule(each line LHS->RHS)
     //LHS are non-terminals
-    Token t = expect(ID);
-    rule.push_back(t.lexeme); //add LHS to rule
-    addNonTerminals(t.lexeme); //add LHS to non_terminals
+    Token temp = expect(ID);
+    rule.push_back(temp.lexeme); //add LHS to rule
+    addNonTerminals(temp.lexeme); //add LHS to non_terminals
     expect(ARROW);
     rule = parseRHS(rule); //add RHS to rule
     rules.push_back(rule); //add rule to rules
@@ -210,10 +210,10 @@ void parse_Rule()
 
 Token expect(TokenType expected_type)
 {
-    Token t = lexer.GetToken(); //get token
-    if (t.token_type != expected_type) //check if token is expected type
+    Token temp = lexer.GetToken(); //get token
+    if (temp.token_type != expected_type) //check if token is expected type
         syntax_error(); //if not, throw error
-    return t; //return token
+    return temp; //return token
 }
 
 vector<string> parseRHS(vector<string> v1) //parsing RHS
@@ -226,7 +226,7 @@ vector<string> parseRHS(vector<string> v1) //parsing RHS
     }
     else if (temp.token_type == STAR)
     {
-        v1.push_back("#");
+        v1.emplace_back("#"); //push_back
         return v1;
     }
     else
@@ -262,31 +262,31 @@ void syntax_error()
 }
 
 
-void addTerminals(string element_to_check1)
+void addTerminals(string element)
 {
-    if (!(find(all_term.begin(), all_term.end(), element_to_check1) != all_term.end())) { //if element is not in all_term then add it to all_term
-        all_term.push_back(element_to_check1);
+    if (!(find(all_elements.begin(), all_elements.end(), element) != all_elements.end())) { //if element is not in all_elements then add it to all_elements
+        all_elements.push_back(element);
     }
 
-    if (find(terminals.begin(), terminals.end(), element_to_check1) != terminals.end()) {  //if element is in terminals then return
+    if (find(terminals.begin(), terminals.end(), element) != terminals.end()) {  //if element is in terminals then return
         return;
     }
     else {
-        terminals.push_back(element_to_check1); //else add it is terminal
+        terminals.push_back(element); //else add it is terminal
     }
 }
 
-void addNonTerminals(string element_to_check1)
+void addNonTerminals(string element)
 {
-    if (!count(all_term.begin(), all_term.end(), element_to_check1)) {//if element is not in all_term then add it to all_term
-        all_term.push_back(element_to_check1);
+    if (!count(all_elements.begin(), all_elements.end(), element)) {//if element is not in all_elements then add it to all_elements
+        all_elements.push_back(element);
     }
 
-    if (count(non_terms.begin(), non_terms.end(), element_to_check1)) { //if element is in non_terms then return
+    if (count(non_terms.begin(), non_terms.end(), element)) { //if element is in non_terms then return
         return;
     }
     else {
-        non_terms.push_back(element_to_check1); //else add it is non-terminal
+        non_terms.push_back(element); //else add it is non-terminal
     }
 }
 
@@ -296,20 +296,19 @@ void printTerminalsAndNoneTerminals()
 
     for (auto i: terminals) //
     {
-        if (!count(non_terms.begin(), non_terms.end(), i)) {
+        if (!count(non_terms.begin(), non_terms.end(), i)) { //if i is not in non_terms then print it (i.e. i is a terminal)
             cout << i << ' ';
         }
 
     }
 
 
-    for (auto i: all_term)
+    for (auto i: all_elements)
     {
-        if (count(non_terms.begin(), non_terms.end(), i)) {
+        if (count(non_terms.begin(), non_terms.end(), i)) { //if i is in non_terms then print it (i.e. i is a non-terminal)
             cout << i << ' ';
         }
     }
-
     cout << " ";
 }
 
@@ -452,8 +451,6 @@ void RemoveUselessSymbols()
 // Task 3
 void CalculateFirstSets()
 {
-    //cout << "hi";
-    //I add first(#) = {#}
     vector<string> a_follow_set;
     first_sets_index.push_back("#");
     a_follow_set.push_back("#");
@@ -463,19 +460,18 @@ void CalculateFirstSets()
     //II first(a) = {a} for every terminal
     for (auto i: terminals)
     {
-        if (!count(non_terms.begin(), non_terms.end(), i))
+        if (!count(non_terms.begin(), non_terms.end(), i)) //check if i is a terminal
         {
-            //cout << "hi";
-            first_sets_index.push_back(i);
+            first_sets_index.push_back(i);    //add i to first_sets_index
             a_follow_set.push_back(i);
-            first_sets.push_back(a_follow_set);
+            first_sets.push_back(a_follow_set); //add a_follow_set to first_sets
             a_follow_set.clear();
         }
 
     }
 
     //initialize first sets for non_terms
-    for (auto i: all_term)
+    for (auto i: all_elements)
     {
         if (count(non_terms.begin(), non_terms.end(), i)) {
             first_sets_index.push_back(i);
@@ -484,26 +480,17 @@ void CalculateFirstSets()
         }
     }
 
-    /*
-    for (auto i: first_sets_index)
-    {
-        cout << i << " ";
-        cout << "\n";
-    }*/
-
     bool change = true;
-    //cout << "hi";
-    //calculate
     while (change)
     {
         change = false;
         for (auto rule: rules)
         {
             //get index of AB in first_sets
-            vector<string>::iterator itr = find(first_sets_index.begin(), first_sets_index.end(), rule[0]);
+            auto itr = find(first_sets_index.begin(), first_sets_index.end(), rule[0]);
             int indexA = distance(first_sets_index.begin(), itr);
 
-            vector<string>::iterator itr1 = find(first_sets_index.begin(), first_sets_index.end(), rule[1]);
+            auto itr1 = find(first_sets_index.begin(), first_sets_index.end(), rule[1]);
             int indexB = distance(first_sets_index.begin(), itr1);
 
             //III If A -> Bx is a grammar rule, where B is a terminal or nonterminal, then add FIRST(B) – { Ɛ } to FIRST(A)
@@ -523,7 +510,7 @@ void CalculateFirstSets()
             int count1 = 1;
             while (count1 > 0)
             {
-                vector<string>::iterator itr2 = find(first_sets_index.begin(), first_sets_index.end(), rule[count1]);
+                auto itr2 = find(first_sets_index.begin(), first_sets_index.end(), rule[count1]);
                 string str = "#";
                 int indexC = distance(first_sets_index.begin(), itr2);
                 if (count(first_sets[indexC].begin(), first_sets[indexC].end(), str))
@@ -541,7 +528,7 @@ void CalculateFirstSets()
                         //IV
                     else
                     {
-                        vector<string>::iterator itr2 = find(first_sets_index.begin(), first_sets_index.end(), rule[count1 +1]);
+                        auto itr2 = find(first_sets_index.begin(), first_sets_index.end(), rule[count1 +1]);
                         indexC = distance(first_sets_index.begin(), itr2);
                         for (auto i: first_sets[indexC])
                         {
@@ -580,7 +567,7 @@ void CalculateFollowSets()
     a_follow_set.clear();
 
     //initailize all to empty
-    for (auto i: all_term)
+    for (auto i: all_elements)
     {
         if (count(non_terms.begin(), non_terms.end(), i)) {
             if (i != non_terms[0])
@@ -939,7 +926,7 @@ int main (int argc, char* argv[])
 
         case 3: CalculateFirstSets();
             //print
-            for (auto i: all_term)
+            for (auto i: all_elements)
             {
                 int num1 = 0;
                 if (count(non_terms.begin(), non_terms.end(), i)) {
@@ -972,7 +959,7 @@ int main (int argc, char* argv[])
 
         case 4: CalculateFollowSets();
             //print
-            for (auto i: all_term)
+            for (auto i: all_elements)
             {
                 int num1 = 0;
                 if (count(non_terms.begin(), non_terms.end(), i)) {
