@@ -116,7 +116,7 @@ using namespace std;
 
 void parse_Grammar();
 void parse_Rule_list();
-vector<string> parse_Id_list(vector<string> vector1);
+vector<string> parse_Ids(vector<string> vector1);
 void parse_Rule();
 vector<string> parseRHS(vector<string> v1);
 void syntax_error();
@@ -171,8 +171,8 @@ void ReadGrammar()
 
 void parse_Grammar()
 {
-    parse_Rule_list();
-    expect(HASH);
+    parse_Rule_list(); //parsing
+    expect(HASH);  //end of rules
 }
 
 void parse_Rule_list()
@@ -185,7 +185,7 @@ void parse_Rule_list()
     }
     else if (temp.token_type == ID)
     {
-        parse_Rule_list();
+        parse_Rule_list();  //recursive call
         return;
     }
     else
@@ -196,55 +196,35 @@ void parse_Rule_list()
 }
 void parse_Rule()
 {
-    vector<string> rule;
+    vector<string> rule;  //create vector for rule(each line LHS->RHS)
+    //LHS are non-terminals
     Token t = expect(ID);
-    rule.push_back(t.lexeme);
-    addNonTerminals(t.lexeme);
+    rule.push_back(t.lexeme); //add LHS to rule
+    addNonTerminals(t.lexeme); //add LHS to non_terminals
     expect(ARROW);
-    rule = parseRHS(rule);
-    rules.push_back(rule);
-    expect(STAR);
+    rule = parseRHS(rule); //add RHS to rule
+    rules.push_back(rule); //add rule to rules
+    expect(STAR); //end of rule
     return;
 }
 
 Token expect(TokenType expected_type)
 {
-    Token t = lexer.GetToken();
-    if (t.token_type != expected_type)
-        syntax_error();
-    return t;
+    Token t = lexer.GetToken(); //get token
+    if (t.token_type != expected_type) //check if token is expected type
+        syntax_error(); //if not, throw error
+    return t; //return token
 }
 
-vector<string> parse_Id_list(vector<string> vector1)
+vector<string> parseRHS(vector<string> v1) //parsing RHS
 {
-    Token t = expect(ID);
-    vector1.push_back(t.lexeme);
-    addTerminals(t.lexeme);
-
-    t = lexer.peek(1);
-    if (t.token_type == ID)
+    Token temp = lexer.peek(1); //get next token
+    if (temp.token_type == ID) //if token is ID
     {
-        vector<string> v = parse_Id_list(vector1);
-        return v;
+        vector<string> t1 = parse_Ids(v1); //parse Id list
+        return t1;
     }
-    else if (t.token_type == STAR)
-    {
-        return vector1;
-    }
-    else
-        syntax_error();
-}
-
-
-vector<string> parseRHS(vector<string> v1)
-{
-    Token t = lexer.peek(1);
-    if (t.token_type == ID)
-    {
-        vector<string> v = parse_Id_list(v1);
-        return v;
-    }
-    else if (t.token_type == STAR)
+    else if (temp.token_type == STAR)
     {
         v1.push_back("#");
         return v1;
@@ -252,6 +232,28 @@ vector<string> parseRHS(vector<string> v1)
     else
         syntax_error();
 }
+
+vector<string> parse_Ids(vector<string> v1)
+{
+    Token temp = expect(ID);
+    v1.push_back(temp.lexeme);
+    addTerminals(temp.lexeme);
+
+    temp = lexer.peek(1);
+    if (temp.token_type == ID)
+    {
+        vector<string> t1 = parse_Ids(v1);
+        return t1;
+    }
+    else if (temp.token_type == STAR)
+    {
+        return v1;
+    }
+    else
+        syntax_error();
+}
+
+
 
 void syntax_error()
 {
@@ -262,32 +264,29 @@ void syntax_error()
 
 void addTerminals(string element_to_check1)
 {
-    if (!count(all_term.begin(), all_term.end(), element_to_check1)) {
+    if (!(find(all_term.begin(), all_term.end(), element_to_check1) != all_term.end())) { //if element is not in all_term then add it to all_term
         all_term.push_back(element_to_check1);
     }
 
-    if (count(terminals.begin(), terminals.end(), element_to_check1)) {
+    if (find(terminals.begin(), terminals.end(), element_to_check1) != terminals.end()) {  //if element is in terminals then return
         return;
-        //cout << "Element found";
     }
     else {
-        terminals.push_back(element_to_check1);
-
+        terminals.push_back(element_to_check1); //else add it is terminal
     }
 }
 
 void addNonTerminals(string element_to_check1)
 {
-    if (!count(all_term.begin(), all_term.end(), element_to_check1)) {
+    if (!count(all_term.begin(), all_term.end(), element_to_check1)) {//if element is not in all_term then add it to all_term
         all_term.push_back(element_to_check1);
     }
 
-    if (count(non_terms.begin(), non_terms.end(), element_to_check1)) {
+    if (count(non_terms.begin(), non_terms.end(), element_to_check1)) { //if element is in non_terms then return
         return;
-        //cout << "Element found";
     }
     else {
-        non_terms.push_back(element_to_check1);
+        non_terms.push_back(element_to_check1); //else add it is non-terminal
     }
 }
 
@@ -295,19 +294,19 @@ void addNonTerminals(string element_to_check1)
 void printTerminalsAndNoneTerminals()
 {
 
-    for (auto i: terminals)
+    for (auto i: terminals) //
     {
         if (!count(non_terms.begin(), non_terms.end(), i)) {
-
-            std::cout << i << ' ';
+            cout << i << ' ';
         }
 
     }
-    //cout << " ";
+
+
     for (auto i: all_term)
     {
         if (count(non_terms.begin(), non_terms.end(), i)) {
-            std::cout << i << ' ';
+            cout << i << ' ';
         }
     }
 
@@ -637,9 +636,6 @@ void CalculateFollowSets()
                     {
                         if (i != "#")
                         {
-                            //cout << indexA << "\n";
-                            //cout << follow_sets.size() << "\n";
-
                             if (indexA < follow_sets.size())
                             {
                                 if (!count(follow_sets[indexA].begin(), follow_sets[indexA].end(), i))
