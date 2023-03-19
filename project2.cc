@@ -294,13 +294,13 @@ void RemoveUselessSymbols()
         //cout << rule_[0] << " ";
         bool isGen = true;
         //checking if LHS is generating
-        auto itr0 = find(universe.begin(), universe.end(), rule_.LHS);
-        index = distance(universe.begin(), itr0);
-        if (!generating_table[index]) //if the index is not generating then set isgenerating to false
-        {
-            isGen = false;
-            break;
-        }
+//        auto itr0 = find(universe.begin(), universe.end(), rule_.LHS);
+//        index = distance(universe.begin(), itr0);
+//        if (!generating_table[index]) //if the index is not generating then set isgenerating to false
+//        {
+//            isGen = false;
+//            break;
+//        }
 
         //checking if RHS is generating
         for (auto i: rule_.RHS)
@@ -362,18 +362,18 @@ void RemoveUselessSymbols()
 //                break;
 //            }
 //        }
-         for(auto i: rule.RHS) {
+        for(auto i: rule.RHS) {
 
-             if (!count(reachable_symbols.begin(), reachable_symbols.end(),i)){  //if any of the RHS symbols is not reachable the set the flag to false otherwise true
-                 final_gen= false;
-             }
-                else{
-                    final_gen= true;
-                }
-         }
-         if(final_gen== true){
-             final_genRules.push_back(rule);
-         }
+            if (!count(reachable_symbols.begin(), reachable_symbols.end(),i)){  //if any of the RHS symbols is not reachable the set the flag to false otherwise true
+                final_gen= false;
+            }
+            else{
+                final_gen= true;
+            }
+        }
+        if(final_gen== true){
+            final_genRules.push_back(rule);
+        }
     }
 
 
