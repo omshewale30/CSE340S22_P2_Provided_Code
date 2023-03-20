@@ -47,11 +47,11 @@ vector<rule>final_genRules;
 
 //part3
 vector<vector<string>> first_sets;
-vector<string> first_sets_index;
+vector<string> indexOf_first_sets;
 
 //part4
 vector<vector<string>> follow_sets;
-vector<string> follow_sets_index;
+vector<string> indexOf_follow_sets;
 
 // read grammar
 void ReadGrammar()
@@ -413,34 +413,35 @@ void RemoveUselessSymbols()
 // Task 3
 void CalculateFirstSets()
 {
+    indexOf_first_sets.emplace_back("#");
     vector<string> one_follow_set;
-    first_sets_index.emplace_back("#");
     one_follow_set.emplace_back("#");
     first_sets.push_back(one_follow_set);
     one_follow_set.clear();
 
- //first{terminal} = terminal
-    for (auto i: terminals) //for every terminal
+//applying rule I and II to get the initial FIRST sets for terminals and epsilon
+    for (auto element: terminals) //for every terminal
     {
-        if (!count(non_terms.begin(), non_terms.end(), i)) //if i is not in non_terms i.e. it is a terminal
+        if (!(find(non_terms.begin(), non_terms.end(), element) != non_terms.end())) //if i is not in non_terms i.e. it is a terminal
         {
-            first_sets_index.push_back(i);    //add each terminal to first_sets_index
-            one_follow_set.push_back(i);
+            indexOf_first_sets.push_back(element);    //add each terminal to indexOf_first_sets
+            one_follow_set.push_back(element);
             first_sets.push_back(one_follow_set); //add each terminal to first_sets
             one_follow_set.clear();
         }
 
     }
 
-    //for every non terminal in all elements, add it to first_sets_index and first_sets
-    for (auto i: all_elements)
+    //initialize all FIRST sets for non-terminals to empty
+    for (auto element: all_elements)
     {
-        if (count(non_terms.begin(), non_terms.end(), i)) { //adding non terminals to first_sets_index
-            first_sets_index.push_back(i);
-            first_sets.push_back(one_follow_set);
+        if (find(non_terms.begin(), non_terms.end(), element) != non_terms.end()) { //setting first sets of non terminals to zero
+            indexOf_first_sets.push_back(element);
+            first_sets.emplace_back(one_follow_set);
             one_follow_set.clear();
         }
     }
+
 
     bool change = true;
     while (change)
@@ -449,47 +450,46 @@ void CalculateFirstSets()
         for (auto rule: rules_struct)  //travering through all rules
         {
             //index of A and B
-            auto itr = find(first_sets_index.begin(), first_sets_index.end(), rule.LHS); //find the index of LHS in first_sets_index
-            int indexA = distance(first_sets_index.begin(), itr);
+            auto itr = find(indexOf_first_sets.begin(), indexOf_first_sets.end(), rule.LHS); //find the index of A in indexOf_first_sets
+            int indexOfA = distance(indexOf_first_sets.begin(), itr);
 
-            auto itr1 = find(first_sets_index.begin(), first_sets_index.end(), rule.RHS[0]); //find the index of RHS[0] in first_sets_index
-            int indexB = distance(first_sets_index.begin(), itr1);
+            auto itr1 = find(indexOf_first_sets.begin(), indexOf_first_sets.end(), rule.RHS[0]); //find the index of B in indexOf_first_sets
+            int indexOfB = distance(indexOf_first_sets.begin(), itr1);
 
             //III If A -> B alpha is a grammar rule, where B is a terminal or nonterminal, then add FIRST(B) – { Ɛ } to FIRST(A)
+            auto& setA = first_sets[indexOfA]; // reference to the vector at index indexOfA
+            const auto& setB = first_sets[indexOfB]; // const reference to the vector at index indexOfB
 
-            for (auto i: first_sets[indexB]) //traversing through first(B)
-            {
-                if (i != "#")
-                {
-                    if (!count(first_sets[indexA].begin(), first_sets[indexA].end(), i))
-                    {
-                        first_sets[indexA].push_back(i); //adding first(B) to first(A)
+            for (const auto& element : setB) { // iterating through elements of setB
+                if (element != "#") {
+                    auto itr = find(setA.begin(), setA.end(), element); // searching for the element in setA
+                    if (itr == setA.end()) { // if element is not found in setA
+                        setA.push_back(element); // adding element to setA
                         change = true;
                     }
-
                 }
             }
+
 
             int c = 1;
             while (c > 0)
             {
-                auto itr2 = find(first_sets_index.begin(), first_sets_index.end(), rule.RHS[c - 1]);
-                //string str = "#";
-                int indexC = distance(first_sets_index.begin(), itr2);
-                if (count(first_sets[indexC].begin(), first_sets[indexC].end(), "#"))
+                auto itr2 = find(indexOf_first_sets.begin(), indexOf_first_sets.end(), rule.RHS[c - 1]); //find the index of RHS of the rule in indexOf_first_sets
+                int indexC = distance(indexOf_first_sets.begin(), itr2);
+                if (count(first_sets[indexC].begin(), first_sets[indexC].end(), "#")) //if # is in first(RHS[c-1])
                 {
-                    //IV
+                    //IV If A -> B alpha is a grammar rule, where FIRST(alpha) contains Ɛ, then add FIRST(B) to FIRST(A)
                     if (c != rule.RHS.size())
                     {
-                        auto itr3 = find(first_sets_index.begin(), first_sets_index.end(), rule.RHS[c]);
-                        indexC = distance(first_sets_index.begin(), itr3);
+                        auto itr3 = find(indexOf_first_sets.begin(), indexOf_first_sets.end(), rule.RHS[c]);
+                        indexC = distance(indexOf_first_sets.begin(), itr3);
                         for (auto i: first_sets[indexC])
                         {
                             if (i != "#")
                             {
-                                if (!count(first_sets[indexA].begin(), first_sets[indexA].end(), i))
+                                if (!count(first_sets[indexOfA].begin(), first_sets[indexOfA].end(), i))
                                 {
-                                    first_sets[indexA].push_back(i);
+                                    first_sets[indexOfA].push_back(i);
                                     change = true;
                                 }
 
@@ -497,16 +497,15 @@ void CalculateFirstSets()
                         }
                         c++;
                     }
-                        //V
+                        //V If A -> B alpha is a grammar rule, where FIRST(alpha) contains Ɛ, then add Ɛ to FIRST(A)
                     else
                     {
-                        if (!count(first_sets[indexA].begin(), first_sets[indexA].end(), "#"))
+                        if (!count(first_sets[indexOfA].begin(), first_sets[indexOfA].end(), "#"))
                         {
-                            first_sets[indexA].push_back("#");
+                            first_sets[indexOfA].push_back("#");
                             change = true;
                         }
                         c = -1;
-
                     }
                 }
                 else
@@ -524,7 +523,7 @@ void CalculateFollowSets()
     CalculateFirstSets();
     //I add $ to S
     vector<string> one_follow_set;
-    follow_sets_index.push_back(non_terms[0]);
+    indexOf_follow_sets.push_back(non_terms[0]);
     one_follow_set.emplace_back("$");
     follow_sets.push_back(one_follow_set);
     one_follow_set.clear();
@@ -535,7 +534,7 @@ void CalculateFollowSets()
         if (count(non_terms.begin(), non_terms.end(), i)) {
             if (i != non_terms[0])
             {
-                follow_sets_index.push_back(i);
+                indexOf_follow_sets.push_back(i);
                 follow_sets.push_back(one_follow_set);
                 one_follow_set.clear();
             }
@@ -551,14 +550,14 @@ void CalculateFollowSets()
             int index_count = 1;
             while (index_count>0)
             {
-                vector<string>::iterator itr = find(follow_sets_index.begin(), follow_sets_index.end(), rule.RHS[index_count-1]);
-                int indexA = distance(follow_sets_index.begin(), itr);
+                vector<string>::iterator itr = find(indexOf_follow_sets.begin(), indexOf_follow_sets.end(), rule.RHS[index_count - 1]);
+                int indexA = distance(indexOf_follow_sets.begin(), itr);
 
 
                 if (index_count  == rule.RHS.size())
                 {
-                    vector<string>::iterator itr1 = find(first_sets_index.begin(), first_sets_index.end(), rule.RHS[index_count]);
-                    int indexB = distance(first_sets_index.begin(), itr1);
+                    vector<string>::iterator itr1 = find(indexOf_first_sets.begin(), indexOf_first_sets.end(), rule.RHS[index_count]);
+                    int indexB = distance(indexOf_first_sets.begin(), itr1);
                     if (indexB < first_sets.size())
                     {
                         for (auto i: first_sets[indexB])
@@ -577,8 +576,8 @@ void CalculateFollowSets()
                 }
                 else
                 {
-                    vector<string>::iterator itr1 = find(first_sets_index.begin(), first_sets_index.end(), rule.RHS[index_count]);
-                    int indexB = distance(first_sets_index.begin(), itr1);
+                    vector<string>::iterator itr1 = find(indexOf_first_sets.begin(), indexOf_first_sets.end(), rule.RHS[index_count]);
+                    int indexB = distance(indexOf_first_sets.begin(), itr1);
                     for (auto i: first_sets[indexB])
                     {
                         if (i != "#")
@@ -602,8 +601,8 @@ void CalculateFollowSets()
             index_count = 1;
             while (index_count>0)
             {
-                vector<string>::iterator itr2 = find(follow_sets_index.begin(), follow_sets_index.end(), rule.RHS[index_count-1]);
-                int indexA = distance(follow_sets_index.begin(), itr2);
+                vector<string>::iterator itr2 = find(indexOf_follow_sets.begin(), indexOf_follow_sets.end(), rule.RHS[index_count - 1]);
+                int indexA = distance(indexOf_follow_sets.begin(), itr2);
                 int count2 = 1;
                 while(count2 >0)
                 {
@@ -614,13 +613,13 @@ void CalculateFollowSets()
                     }
                     else
                     {
-                        vector<string>::iterator itr2 = find(first_sets_index.begin(), first_sets_index.end(), rule.RHS[(index_count + count2)-1]);
-                        int indexB = distance(first_sets_index.begin(), itr2);
+                        auto itr2 = find(indexOf_first_sets.begin(), indexOf_first_sets.end(), rule.RHS[(index_count + count2) - 1]);
+                        int indexB = distance(indexOf_first_sets.begin(), itr2);
 
                         if (count(first_sets[indexB].begin(), first_sets[indexB].end(), "#"))
                         {
-                            vector<string>::iterator itr6 = find(first_sets_index.begin(), first_sets_index.end(), rule.RHS[index_count + count2 ]);
-                            int indexC = distance(first_sets_index.begin(), itr6);
+                            auto itr6 = find(indexOf_first_sets.begin(), indexOf_first_sets.end(), rule.RHS[index_count + count2 ]);
+                            int indexC = distance(indexOf_first_sets.begin(), itr6);
                             for (auto i: first_sets[indexC])
                             {
                                 if (i != "#")
@@ -668,13 +667,13 @@ void CalculateFollowSets()
         change = false;
         for (auto rule: rules_struct)
         {
-            auto itr2 = find(follow_sets_index.begin(), follow_sets_index.end(), rule.LHS);
-            int indexA = distance(follow_sets_index.begin(), itr2);
+            auto itr2 = find(indexOf_follow_sets.begin(), indexOf_follow_sets.end(), rule.LHS);
+            int indexA = distance(indexOf_follow_sets.begin(), itr2);
 
             if (rule.RHS.size() > 0)
             {
-                auto itr2 = find(follow_sets_index.begin(), follow_sets_index.end(), rule.RHS.back());
-                int indexB = distance(follow_sets_index.begin(), itr2);
+                auto itr2 = find(indexOf_follow_sets.begin(), indexOf_follow_sets.end(), rule.RHS.back());
+                int indexB = distance(indexOf_follow_sets.begin(), itr2);
                 if (indexB < follow_sets.size())
                 {
                     for (auto i: follow_sets[indexA])
@@ -694,14 +693,14 @@ void CalculateFollowSets()
                     {
                         if (index_back > 1)
                         {
-                            auto itr7 = find(first_sets_index.begin(), first_sets_index.end(), rule.RHS[index_back-1]);
-                            int indexC = distance(first_sets_index.begin(), itr7);
-                            auto itr8 = find(follow_sets_index.begin(), follow_sets_index.end(), rule.RHS[index_back-1]);
-                            // int indexD = distance(follow_sets_index.begin(), itr8);
+                            auto itr7 = find(indexOf_first_sets.begin(), indexOf_first_sets.end(), rule.RHS[index_back - 1]);
+                            int indexC = distance(indexOf_first_sets.begin(), itr7);
+                            auto itr8 = find(indexOf_follow_sets.begin(), indexOf_follow_sets.end(), rule.RHS[index_back - 1]);
+                            // int indexD = distance(indexOf_follow_sets.begin(), itr8);
                             if (count(first_sets[indexC].begin(), first_sets[indexC].end(), "#"))
                             {
-                                auto itr9 = find(follow_sets_index.begin(), follow_sets_index.end(), rule.RHS[index_back -1]);
-                                int indexE = distance(follow_sets_index.begin(), itr9);
+                                auto itr9 = find(indexOf_follow_sets.begin(), indexOf_follow_sets.end(), rule.RHS[index_back - 1]);
+                                int indexE = distance(indexOf_follow_sets.begin(), itr9);
                                 if (indexE < follow_sets.size())
                                 {
                                     for (auto i: follow_sets[indexA])
@@ -717,14 +716,12 @@ void CalculateFollowSets()
                             }
                             else
                             {
-                                //index_back = -1;
                                 break;
                             }
 
                         }
                         else
                         {
-                            //index_back = -1;
                             break;
                         }
                     }
@@ -740,11 +737,11 @@ void CheckIfGrammarHasPredictiveParser()
 {
     for (auto i: non_terms)
     {
-        vector<string>::iterator itr2 = find(first_sets_index.begin(), first_sets_index.end(), i);
-        int indexA = distance(first_sets_index.begin(), itr2);
+        auto itr2 = find(indexOf_first_sets.begin(), indexOf_first_sets.end(), i);
+        int indexA = distance(indexOf_first_sets.begin(), itr2);
 
-        vector<string>::iterator itr3 = find(follow_sets_index.begin(), follow_sets_index.end(), i);
-        int indexB = distance(follow_sets_index.begin(), itr3);
+        auto itr3 = find(indexOf_follow_sets.begin(), indexOf_follow_sets.end(), i);
+        int indexB = distance(indexOf_follow_sets.begin(), itr3);
 
         if (indexA < first_sets.size())
         {
@@ -788,8 +785,8 @@ void CheckIfGrammarHasPredictiveParser()
                             vector<string> test1;
                             for (auto xy: rule1)
                             {
-                                vector<string>::iterator itr10 = find(first_sets_index.begin(), first_sets_index.end(), xy);
-                                int indexq = distance(first_sets_index.begin(), itr10);
+                                vector<string>::iterator itr10 = find(indexOf_first_sets.begin(), indexOf_first_sets.end(), xy);
+                                int indexq = distance(indexOf_first_sets.begin(), itr10);
                                 if (indexq < first_sets.size())
                                 {
                                     for (auto hxy: first_sets[indexq])
@@ -808,8 +805,8 @@ void CheckIfGrammarHasPredictiveParser()
                             vector<string> test2;
                             for (auto xy: rule2)
                             {
-                                vector<string>::iterator itr10 = find(first_sets_index.begin(), first_sets_index.end(), xy);
-                                int indexq = distance(first_sets_index.begin(), itr10);
+                                vector<string>::iterator itr10 = find(indexOf_first_sets.begin(), indexOf_first_sets.end(), xy);
+                                int indexq = distance(indexOf_first_sets.begin(), itr10);
                                 if (indexq < first_sets.size())
                                 {
                                     for (auto hxy: first_sets[indexq])
@@ -873,10 +870,7 @@ int main (int argc, char* argv[])
 
     //LexicalAnalyzer lexer;
 
-    ReadGrammar();  // Reads the input grammar from standard input
-    // and represent it internally in data structures
-    // ad described in project 2 presentation file
-    //cout << "Parser Success!\n";
+    ReadGrammar();  //Read the grammar as mentioned in the assignment
 
     switch (task) {
         case 1: printTerminalsAndNoneTerminals();
@@ -891,8 +885,8 @@ int main (int argc, char* argv[])
             {
                 int num1 = 0;
                 if (count(non_terms.begin(), non_terms.end(), i)) {
-                    vector<string>::iterator itr4 = find(first_sets_index.begin(), first_sets_index.end(), i);
-                    int indexD = distance(first_sets_index.begin(), itr4);
+                    auto itr0 = find(indexOf_first_sets.begin(), indexOf_first_sets.end(), i);
+                    int indexD = distance(indexOf_first_sets.begin(), itr0);
                     cout << "FIRST(" << i << ") = { ";
                     for (auto k: universe)
                     {
@@ -924,8 +918,8 @@ int main (int argc, char* argv[])
             {
                 int num1 = 0;
                 if (count(non_terms.begin(), non_terms.end(), i)) {
-                    vector<string>::iterator itr4 = find(follow_sets_index.begin(), follow_sets_index.end(), i);
-                    int indexD = distance(follow_sets_index.begin(), itr4);
+                    auto itr0 = find(indexOf_follow_sets.begin(), indexOf_follow_sets.end(), i);
+                    int indexD = distance(indexOf_follow_sets.begin(), itr0);
                     cout << "FOLLOW(" << i << ") = { ";
                     for (auto k: universe)
                     {
