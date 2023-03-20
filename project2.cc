@@ -413,15 +413,15 @@ void RemoveUselessSymbols()
 void CalculateFirstSets()
 {
     vector<string> a_follow_set;
-    first_sets_index.push_back("#");
-    a_follow_set.push_back("#");
+    first_sets_index.emplace_back("#");
+    a_follow_set.emplace_back("#");
     first_sets.push_back(a_follow_set);
     a_follow_set.clear();
 
-    //II first(a) = {a} for every terminal
-    for (auto i: terminals)
+    //II first(a) = {a} for every terminal a
+//    for (auto i: terminals) //for every terminal
     {
-        if (!count(non_terms.begin(), non_terms.end(), i)) //check if i is a terminal
+        if (!count(non_terms.begin(), non_terms.end(), i)) //if i is not in non_terms i.e. it is a terminal
         {
             first_sets_index.push_back(i);    //add i to first_sets_index
             a_follow_set.push_back(i);
@@ -430,7 +430,6 @@ void CalculateFirstSets()
         }
 
     }
-
     //initialize first sets for non_terms
     for (auto i: all_elements)
     {
