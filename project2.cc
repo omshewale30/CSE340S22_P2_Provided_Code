@@ -518,6 +518,12 @@ void CalculateFirstSets()
 }
 
 // Task 4
+
+
+
+
+
+
 void CalculateFollowSets()
 {
     CalculateFirstSets();
@@ -695,19 +701,17 @@ void CalculateFollowSets()
                         {
                             auto itr7 = find(indexOf_first_sets.begin(), indexOf_first_sets.end(), rule.RHS[index_back - 1]);
                             int indexC = distance(indexOf_first_sets.begin(), itr7);
-                            auto itr8 = find(indexOf_follow_sets.begin(), indexOf_follow_sets.end(), rule.RHS[index_back - 1]);
-                            // int indexD = distance(indexOf_follow_sets.begin(), itr8);
                             if (count(first_sets[indexC].begin(), first_sets[indexC].end(), "#"))
                             {
-                                auto itr9 = find(indexOf_follow_sets.begin(), indexOf_follow_sets.end(), rule.RHS[index_back - 1]);
-                                int indexE = distance(indexOf_follow_sets.begin(), itr9);
-                                if (indexE < follow_sets.size())
+                                auto itr8 = find(indexOf_follow_sets.begin(), indexOf_follow_sets.end(), rule.RHS[index_back - 2]);
+                                int indexD = distance(indexOf_follow_sets.begin(), itr8);
+                                if (indexD < follow_sets.size())
                                 {
                                     for (auto i: follow_sets[indexA])
                                     {
-                                        if (!count(follow_sets[indexE].begin(), follow_sets[indexE].end(), i))
+                                        if (!count(follow_sets[indexD].begin(), follow_sets[indexD].end(), i))
                                         {
-                                            follow_sets[indexE].push_back(i);
+                                            follow_sets[indexD].push_back(i);
                                             change = true;
                                         }
                                     }
@@ -760,94 +764,131 @@ void CheckIfGrammarHasPredictiveParser()
                 }
             }
         }
-        int numx = 0;
-        for (auto rule1: rules)
-        {
-            numx++;
-            if (rule1[0] == i)
-            {
-                //vector<string>::iterator itr2 = find(rules.begin(), rules.end(), rule1);
-                vector<string> temp_rule1 = rule1;
-                //int index1 = distance(rules.begin(), itr2);
-                int numy = 0;
-                for (auto rule2: rules)
-                {
-                    numy++;
-                    if (rule2[0] == i)
-                    {
-                        vector<string> temp_rule2 = rule2;
-                        //vector<string>::iterator itr3 = find(rules.begin(), rules.end(), rule2);
-                        //int index2 = distance(rules.begin(), itr3);
-                        if (numx != numy)
-                        {
-                            temp_rule1.erase(temp_rule1.begin());
-                            temp_rule2.erase(temp_rule2.begin());
-                            vector<string> test1;
-                            for (auto xy: rule1)
-                            {
-                                vector<string>::iterator itr10 = find(indexOf_first_sets.begin(), indexOf_first_sets.end(), xy);
-                                int indexq = distance(indexOf_first_sets.begin(), itr10);
-                                if (indexq < first_sets.size())
-                                {
-                                    for (auto hxy: first_sets[indexq])
-                                    {
-                                        if (!count(test1.begin(), test1.end(), hxy))
-                                        {
-                                            test1.push_back(hxy);
-                                        }
-                                    }
-                                    if (!count(first_sets[indexq].begin(), first_sets[indexq].end(), "#"))
-                                    {
-                                        break;
-                                    }
-                                }
-                            }
-                            vector<string> test2;
-                            for (auto xy: rule2)
-                            {
-                                vector<string>::iterator itr10 = find(indexOf_first_sets.begin(), indexOf_first_sets.end(), xy);
-                                int indexq = distance(indexOf_first_sets.begin(), itr10);
-                                if (indexq < first_sets.size())
-                                {
-                                    for (auto hxy: first_sets[indexq])
-                                    {
-                                        if (!count(test2.begin(), test2.end(), hxy))
-                                        {
-                                            test2.push_back(hxy);
-                                        }
-                                    }
-                                    if (!count(first_sets[indexq].begin(), first_sets[indexq].end(), "#"))
-                                    {
-                                        break;
-                                    }
-                                }
-
-                            }
-                            for (auto x: test1)
-                            {
-                                for(auto y: test2)
-                                {
-                                    if (x == y)
-                                    {
-                                        cout << "NO\n";
-                                        return;
-                                    }
-                                }
-                            }
-                        }
-                        else
-                            break;
-                    }
-                    else
-                        break;
-                }
-            }
-            else
-                break;
-        }
     }
     cout << "YES\n";
 }
+
+
+
+
+
+
+//void CheckIfGrammarHasPredictiveParser()
+//{
+//    for (auto i: non_terms)
+//    {
+//        auto itr2 = find(indexOf_first_sets.begin(), indexOf_first_sets.end(), i);
+//        int indexA = distance(indexOf_first_sets.begin(), itr2);
+//
+//        auto itr3 = find(indexOf_follow_sets.begin(), indexOf_follow_sets.end(), i);
+//        int indexB = distance(indexOf_follow_sets.begin(), itr3);
+//
+//        if (indexA < first_sets.size())
+//        {
+//            if (count(first_sets[indexA].begin(), first_sets[indexA].end(), "#"))
+//            {
+//                for (auto k: first_sets[indexA])
+//                {
+//                    for (auto m: follow_sets[indexB])
+//                    {
+//                        if (k == m)
+//                        {
+//                            cout << "NO\n";
+//                            return;
+//                        }
+//                    }
+//                }
+//            }
+//        }
+//        int numx = 0;
+//        for (auto rule1: rules)
+//        {
+//            numx++;
+//            if (rule1[0] == i)
+//            {
+//                //vector<string>::iterator itr2 = find(rules.begin(), rules.end(), rule1);
+//                vector<string> temp_rule1 = rule1;
+//                //int index1 = distance(rules.begin(), itr2);
+//                int numy = 0;
+//                for (auto rule2: rules)
+//                {
+//                    numy++;
+//                    if (rule2[0] == i)
+//                    {
+//                        vector<string> temp_rule2 = rule2;
+//                        //vector<string>::iterator itr3 = find(rules.begin(), rules.end(), rule2);
+//                        //int index2 = distance(rules.begin(), itr3);
+//                        if (numx != numy)
+//                        {
+//                            temp_rule1.erase(temp_rule1.begin());
+//                            temp_rule2.erase(temp_rule2.begin());
+//                            vector<string> test1;
+//                            for (auto xy: rule1)
+//                            {
+//                                vector<string>::iterator itr10 = find(indexOf_first_sets.begin(), indexOf_first_sets.end(), xy);
+//                                int indexq = distance(indexOf_first_sets.begin(), itr10);
+//                                if (indexq < first_sets.size())
+//                                {
+//                                    for (auto hxy: first_sets[indexq])
+//                                    {
+//                                        if (!count(test1.begin(), test1.end(), hxy))
+//                                        {
+//                                            test1.push_back(hxy);
+//                                        }
+//                                    }
+//                                    if (!count(first_sets[indexq].begin(), first_sets[indexq].end(), "#"))
+//                                    {
+//                                        break;
+//                                    }
+//                                }
+//                            }
+//                            vector<string> test2;
+//                            for (auto xy: rule2)
+//                            {
+//                                vector<string>::iterator itr10 = find(indexOf_first_sets.begin(), indexOf_first_sets.end(), xy);
+//                                int indexq = distance(indexOf_first_sets.begin(), itr10);
+//                                if (indexq < first_sets.size())
+//                                {
+//                                    for (auto hxy: first_sets[indexq])
+//                                    {
+//                                        if (!count(test2.begin(), test2.end(), hxy))
+//                                        {
+//                                            test2.push_back(hxy);
+//                                        }
+//                                    }
+//                                    if (!count(first_sets[indexq].begin(), first_sets[indexq].end(), "#"))
+//                                    {
+//                                        break;
+//                                    }
+//                                }
+//
+//                            }
+//                            for (auto x: test1)
+//                            {
+//                                for(auto y: test2)
+//                                {
+//                                    if (x == y)
+//                                    {
+//                                        cout << "NO\n";
+//                                        return;
+//                                    }
+//                                }
+//                            }
+//                        }
+//                        else
+//                            break;
+//                    }
+//                    else
+//                        break;
+//                }
+//            }
+//            else
+//                break;
+//        }
+//    }
+//    cout << "YES\n";
+//}
+
 
 
 
