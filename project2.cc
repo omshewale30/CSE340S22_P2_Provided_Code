@@ -446,7 +446,7 @@ void CalculateFirstSets()
     while (change)
     {
         change = false;
-        for (auto rule: rules_struct)
+        for (auto rule: rules_struct)  //travering through all rules
         {
             //index of A and B
             auto itr = find(first_sets_index.begin(), first_sets_index.end(), rule.LHS); //find the index of LHS in first_sets_index
@@ -457,7 +457,7 @@ void CalculateFirstSets()
 
             //III If A -> B alpha is a grammar rule, where B is a terminal or nonterminal, then add FIRST(B) – { Ɛ } to FIRST(A)
 
-            for (auto i: first_sets[indexB]) //for every element in first(B)
+            for (auto i: first_sets[indexB]) //traversing through first(B)
             {
                 if (i != "#")
                 {
@@ -470,18 +470,18 @@ void CalculateFirstSets()
                 }
             }
 
-            int count1 = 1;
-            while (count1 > 0)
+            int c = 1;
+            while (c > 0)
             {
-                auto itr2 = find(first_sets_index.begin(), first_sets_index.end(), rule.RHS[count1-1]);
-                string str = "#";
+                auto itr2 = find(first_sets_index.begin(), first_sets_index.end(), rule.RHS[c - 1]);
+                //string str = "#";
                 int indexC = distance(first_sets_index.begin(), itr2);
-                if (count(first_sets[indexC].begin(), first_sets[indexC].end(), str))
+                if (count(first_sets[indexC].begin(), first_sets[indexC].end(), "#"))
                 {
                     //IV
-                    if (count1  != rule.RHS.size())
+                    if (c != rule.RHS.size())
                     {
-                        auto itr3 = find(first_sets_index.begin(), first_sets_index.end(), rule.RHS[count1]);
+                        auto itr3 = find(first_sets_index.begin(), first_sets_index.end(), rule.RHS[c]);
                         indexC = distance(first_sets_index.begin(), itr3);
                         for (auto i: first_sets[indexC])
                         {
@@ -495,23 +495,23 @@ void CalculateFirstSets()
 
                             }
                         }
-                        count1++;
+                        c++;
                     }
                         //V
                     else
                     {
-                        if (!count(first_sets[indexA].begin(), first_sets[indexA].end(), str))
+                        if (!count(first_sets[indexA].begin(), first_sets[indexA].end(), "#"))
                         {
                             first_sets[indexA].push_back("#");
                             change = true;
                         }
-                        count1 = -1;
+                        c = -1;
 
                     }
                 }
                 else
                 {
-                    count1 = -1;
+                    c = -1;
                 }
             }
         }
