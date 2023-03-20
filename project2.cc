@@ -3,6 +3,7 @@
  *               Rida Bazzi 2019
  * Do not share this file with anyone
  */
+//This is the exp branch of the project
 #include <iostream>
 #include <cstdio>
 #include <cstdlib>
@@ -419,7 +420,7 @@ void CalculateFirstSets()
     a_follow_set.clear();
 
     //II first(a) = {a} for every terminal a
-//    for (auto i: terminals) //for every terminal
+    for (auto i: terminals) //for every terminal
     {
         if (!count(non_terms.begin(), non_terms.end(), i)) //if i is not in non_terms i.e. it is a terminal
         {
