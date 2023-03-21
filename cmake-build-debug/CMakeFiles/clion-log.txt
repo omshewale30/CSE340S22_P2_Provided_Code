@@ -1,4 +1,4 @@
-/Users/omshewale/Desktop/CLion.app/Contents/bin/cmake/mac/bin/cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_MAKE_PROGRAM=/Users/omshewale/Desktop/CLion.app/Contents/bin/ninja/mac/ninja -G Ninja -S "/Users/omshewale/Desktop/CSE 340/Project 2/CSE340S22_P2_Provided_Code" -B "/Users/omshewale/Desktop/CSE 340/Project 2/CSE340S22_P2_Provided_Code/cmake-build-debug"
+/Volumes/seagate/IDE/CLion.app/Contents/bin/cmake/mac/bin/cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_MAKE_PROGRAM=/Volumes/seagate/IDE/CLion.app/Contents/bin/ninja/mac/ninja -G Ninja -S "/Users/omshewale/Desktop/CSE 340/Project 2/CSE340S22_P2_Provided_Code" -B "/Users/omshewale/Desktop/CSE 340/Project 2/CSE340S22_P2_Provided_Code/cmake-build-debug"
 -- The C compiler identification is AppleClang 14.0.0.14000029
 -- The CXX compiler identification is AppleClang 14.0.0.14000029
 -- Detecting C compiler ABI info

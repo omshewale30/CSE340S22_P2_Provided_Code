@@ -42,7 +42,7 @@ rule CUSTOM_COMMAND
 # Rule for re-running cmake.
 
 rule RERUN_CMAKE
-  command = /Users/omshewale/Desktop/CLion.app/Contents/bin/cmake/mac/bin/cmake --regenerate-during-build -S"/Users/omshewale/Desktop/CSE 340/Project 2/CSE340S22_P2_Provided_Code" -B"/Users/omshewale/Desktop/CSE 340/Project 2/CSE340S22_P2_Provided_Code/cmake-build-debug"
+  command = /Volumes/seagate/IDE/CLion.app/Contents/bin/cmake/mac/bin/cmake --regenerate-during-build -S"/Users/omshewale/Desktop/CSE 340/Project 2/CSE340S22_P2_Provided_Code" -B"/Users/omshewale/Desktop/CSE 340/Project 2/CSE340S22_P2_Provided_Code/cmake-build-debug"
   description = Re-running CMake...
   generator = 1
 
@@ -51,7 +51,7 @@ rule RERUN_CMAKE
 # Rule for cleaning all built files.
 
 rule CLEAN
-  command = /Users/omshewale/Desktop/CLion.app/Contents/bin/ninja/mac/ninja $FILE_ARG -t clean $TARGETS
+  command = /Volumes/seagate/IDE/CLion.app/Contents/bin/ninja/mac/ninja $FILE_ARG -t clean $TARGETS
   description = Cleaning all built files...
 
 
@@ -59,6 +59,6 @@ rule CLEAN
 # Rule for printing all primary targets available.
 
 rule HELP
-  command = /Users/omshewale/Desktop/CLion.app/Contents/bin/ninja/mac/ninja -t targets
+  command = /Volumes/seagate/IDE/CLion.app/Contents/bin/ninja/mac/ninja -t targets
   description = All primary targets available:
 

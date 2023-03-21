@@ -441,8 +441,6 @@ void CalculateFirstSets()
             one_follow_set.clear();
         }
     }
-
-
     bool change = true;
     while (change)
     {
@@ -450,8 +448,8 @@ void CalculateFirstSets()
         for (auto rule: rules_struct)  //travering through all rules
         {
             //index of A and B
-            auto itr = find(indexOf_first_sets.begin(), indexOf_first_sets.end(), rule.LHS); //find the index of A in indexOf_first_sets
-            int indexOfA = distance(indexOf_first_sets.begin(), itr);
+            auto itr0 = find(indexOf_first_sets.begin(), indexOf_first_sets.end(), rule.LHS); //find the index of A in indexOf_first_sets
+            int indexOfA = distance(indexOf_first_sets.begin(), itr0);
 
             auto itr1 = find(indexOf_first_sets.begin(), indexOf_first_sets.end(), rule.RHS[0]); //find the index of B in indexOf_first_sets
             int indexOfB = distance(indexOf_first_sets.begin(), itr1);
@@ -462,57 +460,103 @@ void CalculateFirstSets()
 
             for (const auto& element : setB) { // iterating through elements of setB
                 if (element != "#") {
-                    auto itr = find(setA.begin(), setA.end(), element); // searching for the element in setA
-                    if (itr == setA.end()) { // if element is not found in setA
+                    auto itr0 = find(setA.begin(), setA.end(), element); // searching for the element in setA
+                    if (itr0 == setA.end()) { // if element is not found in setA
                         setA.push_back(element); // adding element to setA
                         change = true;
                     }
                 }
             }
-
-
-            int c = 1;
-            while (c > 0)
+            for (int i = 0; i < rule.RHS.size(); i++)
             {
-                auto itr2 = find(indexOf_first_sets.begin(), indexOf_first_sets.end(), rule.RHS[c - 1]); //find the index of RHS of the rule in indexOf_first_sets
-                int indexC = distance(indexOf_first_sets.begin(), itr2);
-                if (count(first_sets[indexC].begin(), first_sets[indexC].end(), "#")) //if # is in first(RHS[c-1])
-                {
-                    //IV If A -> B alpha is a grammar rule, where FIRST(alpha) contains Ɛ, then add FIRST(B) to FIRST(A)
-                    if (c != rule.RHS.size())
-                    {
-                        auto itr3 = find(indexOf_first_sets.begin(), indexOf_first_sets.end(), rule.RHS[c]);
-                        indexC = distance(indexOf_first_sets.begin(), itr3);
-                        for (auto i: first_sets[indexC])
-                        {
-                            if (i != "#")
-                            {
-                                if (!count(first_sets[indexOfA].begin(), first_sets[indexOfA].end(), i))
-                                {
-                                    first_sets[indexOfA].push_back(i);
-                                    change = true;
-                                }
+                auto itr = find(indexOf_first_sets.begin(), indexOf_first_sets.end(), rule.RHS[i]);
+                int indexC = distance(indexOf_first_sets.begin(), itr);
+                bool contains_epsilon = count(first_sets[indexC].begin(), first_sets[indexC].end(), "#");
 
+                // If RHS[i] contains epsilon, add all non-epsilon elements of FIRST(RHS[i+1]) to FIRST(A)
+                if (contains_epsilon && i < rule.RHS.size() - 1)
+                {
+                    auto itr_next = find(indexOf_first_sets.begin(), indexOf_first_sets.end(), rule.RHS[i+1]);
+                    int indexNext = distance(indexOf_first_sets.begin(), itr_next);
+                    for (auto j : first_sets[indexNext])
+                    {
+                        if (j != "#")
+                        {
+                            if (!count(first_sets[indexOfA].begin(), first_sets[indexOfA].end(), j))
+                            {
+                                first_sets[indexOfA].push_back(j);
+                                change = true;
                             }
                         }
-                        c++;
-                    }
-                        //V If A -> B alpha is a grammar rule, where FIRST(alpha) contains Ɛ, then add Ɛ to FIRST(A)
-                    else
-                    {
-                        if (!count(first_sets[indexOfA].begin(), first_sets[indexOfA].end(), "#"))
-                        {
-                            first_sets[indexOfA].push_back("#");
-                            change = true;
-                        }
-                        c = -1;
                     }
                 }
+
+                    // If RHS[i] does not contain epsilon, add its elements to FIRST(A) and exit
                 else
                 {
-                    c = -1;
+                    for (auto j : first_sets[indexC])
+                    {
+                        if (!count(first_sets[indexOfA].begin(), first_sets[indexOfA].end(), j))
+                        {
+                            first_sets[indexOfA].push_back(j);
+                            change = true;
+                        }
+                    }
+                    break;
                 }
             }
+
+            // If all symbols in RHS contain epsilon, add epsilon to FIRST(A)
+            if (count(rule.RHS.begin(), rule.RHS.end(), "#") == rule.RHS.size() && !count(first_sets[indexOfA].begin(), first_sets[indexOfA].end(), "#"))
+            {
+                first_sets[indexOfA].push_back("#");
+                change = true;
+            }
+
+
+            //applies rule IV and V to get the rest of the FIRST sets
+//            int c = 1;
+//            while (c > 0)
+//            {
+//                auto itr0 = find(indexOf_first_sets.begin(), indexOf_first_sets.end(), rule.RHS[c - 1]); //find the index of RHS of the rule in indexOf_first_sets
+//                int indexC = distance(indexOf_first_sets.begin(), itr0);
+//                if (count(first_sets[indexC].begin(), first_sets[indexC].end(), "#")) //if # is in first(RHS[c-1])
+//                {
+//                    //IV If A -> B alpha is a grammar rule, where FIRST(alpha) contains Ɛ, then add FIRST(B) to FIRST(A)
+//                    if (c != rule.RHS.size())
+//                    {
+//                        auto itr1 = find(indexOf_first_sets.begin(), indexOf_first_sets.end(), rule.RHS[c]);
+//                        indexC = distance(indexOf_first_sets.begin(), itr1);
+//                        for (auto i: first_sets[indexC])
+//                        {
+//                            if (i != "#")
+//                            {
+//                                if (!count(first_sets[indexOfA].begin(), first_sets[indexOfA].end(), i))
+//                                {
+//                                    first_sets[indexOfA].push_back(i);
+//                                    change = true;
+//                                }
+//
+//                            }
+//                        }
+//                        c++;
+//                    }
+//                        //V If A -> B alpha is a grammar rule, where FIRST(alpha) contains Ɛ, then add Ɛ to FIRST(A)
+//                    else
+//                    {
+//                        if (!count(first_sets[indexOfA].begin(), first_sets[indexOfA].end(), "#"))
+//                        {
+//                            first_sets[indexOfA].push_back("#");
+//                            change = true;
+//                        }
+//                        c = -1;
+//                    }
+//                }
+//                else
+//                {
+//                    c = -1;
+//                }
+//            }
         }
     }
 }
@@ -767,10 +811,6 @@ void CheckIfGrammarHasPredictiveParser()
     }
     cout << "YES\n";
 }
-
-
-
-
 
 
 //void CheckIfGrammarHasPredictiveParser()
