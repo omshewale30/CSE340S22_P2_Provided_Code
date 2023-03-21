@@ -46,12 +46,17 @@ vector<rule> genRules;
 vector<rule>final_genRules;
 
 //part3
+int FindIndexOfElementInFirstSetsIndices(string element);
 vector<vector<string>> first_sets;
 vector<string> indexOf_first_sets;
 
 //part4
 vector<vector<string>> follow_sets;
 vector<string> indexOf_follow_sets;
+bool AddToSetIfNotPresent(vector<string> &set, string element);
+int FindIndexOfElement(string element);
+
+int numberofEpsilion(vector<string> vec);
 
 // read grammar
 void ReadGrammar()
@@ -116,7 +121,7 @@ void parse_Rule()
 
 
     r.RHS = parseRHS(rule); //add RHS to rule
-   // rules.push_back(rule); //add rule to rules
+    // rules.push_back(rule); //add rule to rules
     rules_struct.push_back(r); //add rule to rules
 
     element_check(STAR); //end of rule
@@ -411,6 +416,20 @@ void RemoveUselessSymbols()
 }
 
 // Task 3
+int FindIndexOfElementInFirstSetsIndices(string element) {
+    auto itr = find(indexOf_first_sets.begin(), indexOf_first_sets.end(), element);
+    if (itr != universe.end()) {
+        return distance(indexOf_first_sets.begin(), itr);
+    }
+    return -1;
+}
+bool AddToSetIfNotPresent(vector<string>& set, string element) {
+    if (find(set.begin(), set.end(), element) == set.end()) {
+        set.push_back(element);
+        return true;
+    }
+    return false;
+}
 void CalculateFirstSets()
 {
     indexOf_first_sets.emplace_back("#");
@@ -448,11 +467,9 @@ void CalculateFirstSets()
         for (auto rule: rules_struct)  //travering through all rules
         {
             //index of A and B
-            auto itr0 = find(indexOf_first_sets.begin(), indexOf_first_sets.end(), rule.LHS); //find the index of A in indexOf_first_sets
-            int indexOfA = distance(indexOf_first_sets.begin(), itr0);
+            int indexOfA = FindIndexOfElementInFirstSetsIndices(rule.LHS);
 
-            auto itr1 = find(indexOf_first_sets.begin(), indexOf_first_sets.end(), rule.RHS[0]); //find the index of B in indexOf_first_sets
-            int indexOfB = distance(indexOf_first_sets.begin(), itr1);
+            int indexOfB = FindIndexOfElementInFirstSetsIndices(rule.RHS[0]);
 
             //III If A -> B alpha is a grammar rule, where B is a terminal or nonterminal, then add FIRST(B) – { Ɛ } to FIRST(A)
             auto& setA = first_sets[indexOfA]; // reference to the vector at index indexOfA
@@ -467,24 +484,23 @@ void CalculateFirstSets()
                     }
                 }
             }
+
+
             for (int i = 0; i < rule.RHS.size(); i++)
             {
-                auto itr = find(indexOf_first_sets.begin(), indexOf_first_sets.end(), rule.RHS[i]);
-                int indexC = distance(indexOf_first_sets.begin(), itr);
+                int indexC = FindIndexOfElementInFirstSetsIndices(rule.RHS[i]);
                 bool contains_epsilon = count(first_sets[indexC].begin(), first_sets[indexC].end(), "#");
 
                 // If RHS[i] contains epsilon, add all non-epsilon elements of FIRST(RHS[i+1]) to FIRST(A)
                 if (contains_epsilon && i < rule.RHS.size() - 1)
                 {
-                    auto itr_next = find(indexOf_first_sets.begin(), indexOf_first_sets.end(), rule.RHS[i+1]);
-                    int indexNext = distance(indexOf_first_sets.begin(), itr_next);
+                    int indexNext = FindIndexOfElementInFirstSetsIndices(rule.RHS[i+1]);
                     for (auto j : first_sets[indexNext])
                     {
                         if (j != "#")
                         {
-                            if (!count(first_sets[indexOfA].begin(), first_sets[indexOfA].end(), j))
+                            if (AddToSetIfNotPresent(first_sets[indexOfA], j))
                             {
-                                first_sets[indexOfA].push_back(j);
                                 change = true;
                             }
                         }
@@ -496,9 +512,8 @@ void CalculateFirstSets()
                 {
                     for (auto j : first_sets[indexC])
                     {
-                        if (!count(first_sets[indexOfA].begin(), first_sets[indexOfA].end(), j))
+                        if (AddToSetIfNotPresent(first_sets[indexOfA], j))
                         {
-                            first_sets[indexOfA].push_back(j);
                             change = true;
                         }
                     }
@@ -563,11 +578,8 @@ void CalculateFirstSets()
 
 // Task 4
 
-
-
-
-
-
+//
+//
 void CalculateFollowSets()
 {
     CalculateFirstSets();
@@ -600,13 +612,13 @@ void CalculateFollowSets()
             int index_count = 1;
             while (index_count>0)
             {
-                vector<string>::iterator itr = find(indexOf_follow_sets.begin(), indexOf_follow_sets.end(), rule.RHS[index_count - 1]);
+                auto itr = find(indexOf_follow_sets.begin(), indexOf_follow_sets.end(), rule.RHS[index_count - 1]);
                 int indexA = distance(indexOf_follow_sets.begin(), itr);
 
 
                 if (index_count  == rule.RHS.size())
                 {
-                    vector<string>::iterator itr1 = find(indexOf_first_sets.begin(), indexOf_first_sets.end(), rule.RHS[index_count]);
+                    auto itr1 = find(indexOf_first_sets.begin(), indexOf_first_sets.end(), rule.RHS[index_count]);
                     int indexB = distance(indexOf_first_sets.begin(), itr1);
                     if (indexB < first_sets.size())
                     {
@@ -626,7 +638,7 @@ void CalculateFollowSets()
                 }
                 else
                 {
-                    vector<string>::iterator itr1 = find(indexOf_first_sets.begin(), indexOf_first_sets.end(), rule.RHS[index_count]);
+                    auto itr1 = find(indexOf_first_sets.begin(), indexOf_first_sets.end(), rule.RHS[index_count]);
                     int indexB = distance(indexOf_first_sets.begin(), itr1);
                     for (auto i: first_sets[indexB])
                     {
@@ -722,8 +734,8 @@ void CalculateFollowSets()
 
             if (rule.RHS.size() > 0)
             {
-                auto itr2 = find(indexOf_follow_sets.begin(), indexOf_follow_sets.end(), rule.RHS.back());
-                int indexB = distance(indexOf_follow_sets.begin(), itr2);
+                auto itr15 = find(indexOf_follow_sets.begin(), indexOf_follow_sets.end(), rule.RHS.back());
+                int indexB = distance(indexOf_follow_sets.begin(), itr15);
                 if (indexB < follow_sets.size())
                 {
                     for (auto i: follow_sets[indexA])
@@ -778,6 +790,91 @@ void CalculateFollowSets()
         }
     }
 }
+//void CalculateFollowSets() {
+//    CalculateFirstSets();
+//    indexOf_follow_sets.push_back(non_terms[0]);
+//    follow_sets.resize(indexOf_follow_sets.size());
+//
+//    follow_sets[0].push_back("$");
+//
+//    bool changed;
+//    do {
+//        changed = false;
+//        for (auto& rule : rules_struct) { // for each rule
+//            auto itr0= find(non_terms.begin(), non_terms.end(), rule.LHS);  // find index of LHS in non_terms
+//            int lhs_index = distance(non_terms.begin(), itr0);
+//            for (size_t i = 0; i < rule.RHS.size(); i++) { // for each element in RHS
+//                int rhs_index = FindIndexOfElement(rule.RHS[i]); //
+//                if (rhs_index < 0) {
+//                    // skip terminals
+//                    continue;
+//                }
+//                // apply rule IV
+//                if (i < rule.RHS.size() - 1) {
+//                    for (auto& f : first_sets[rhs_index]) {
+//                        if (f != "#") {
+//                            if (AddToSetIfNotPresent(follow_sets[rhs_index + 1], f)) {
+//                                changed = true;
+//                            }
+//                        }
+//                    }
+//                }
+//                // apply rule V
+//                if (i == rule.RHS.size() - 1) {
+//                    for (auto& f : follow_sets[lhs_index]) {
+//                        if (AddToSetIfNotPresent(follow_sets[rhs_index], f)) {
+//                            changed = true;
+//                        }
+//                    }
+//                }
+//                // apply rule III
+//                if (i < rule.RHS.size() - 1) {
+//                    bool all_epsilon = true;
+//                    for (size_t j = i + 1; j < rule.RHS.size(); j++) {
+//                        int next_index = FindIndexOfElement(rule.RHS[j]);
+//                        if (next_index < 0) {
+//                            // skip terminals
+//                            continue;
+//                        }
+//                        int cena= count(first_sets[next_index].begin(),first_sets[next_index].end(),"#");
+//                        all_epsilon &= cena>0;
+//                        for (auto& f : first_sets[next_index]) {
+//                            if (f != "#") {
+//                                if (AddToSetIfNotPresent(follow_sets[rhs_index], f)) {
+//                                    changed = true;
+//                                }
+//                            }
+//                        }
+//                        if (!all_epsilon) {
+//                            break;
+//                        }
+//                    }
+//                    if (all_epsilon) {
+//                        for (auto& f : follow_sets[lhs_index]) {
+//                            if (AddToSetIfNotPresent(follow_sets[rhs_index], f)) {
+//                                changed = true;
+//                            }
+//                        }
+//                    }
+//                }
+//            }
+//        }
+//    } while (changed);
+//}
+int numberofEpsilion(vector<string> vec)
+{
+    int count=0;
+    for (auto i: vec)
+    {
+        if (i=="#")
+        {
+            count++;
+        }
+    }
+    return count;
+}
+
+
 
 
 // Task 5
