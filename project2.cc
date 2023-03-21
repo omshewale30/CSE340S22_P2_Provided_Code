@@ -418,11 +418,16 @@ void RemoveUselessSymbols()
 // Task 3
 int FindIndexOfElementInFirstSetsIndices(string element) {
     auto itr = find(indexOf_first_sets.begin(), indexOf_first_sets.end(), element);
-    if (itr != universe.end()) {
-        return distance(indexOf_first_sets.begin(), itr);
-    }
-    return -1;
+    return distance(indexOf_first_sets.begin(), itr);
+
 }
+int FindIndexOfElementInFollowSetsIndices(string element) {
+    auto itr = find(indexOf_follow_sets.begin(), indexOf_follow_sets.end(), element);
+    return distance(indexOf_follow_sets.begin(), itr);
+}
+
+
+
 bool AddToSetIfNotPresent(vector<string>& set, string element) {
     if (find(set.begin(), set.end(), element) == set.end()) {
         set.push_back(element);
@@ -527,262 +532,88 @@ void CalculateFirstSets()
                 first_sets[indexOfA].push_back("#");
                 change = true;
             }
-
-
-            //applies rule IV and V to get the rest of the FIRST sets
-//            int c = 1;
-//            while (c > 0)
-//            {
-//                auto itr0 = find(indexOf_first_sets.begin(), indexOf_first_sets.end(), rule.RHS[c - 1]); //find the index of RHS of the rule in indexOf_first_sets
-//                int indexC = distance(indexOf_first_sets.begin(), itr0);
-//                if (count(first_sets[indexC].begin(), first_sets[indexC].end(), "#")) //if # is in first(RHS[c-1])
-//                {
-//                    //IV If A -> B alpha is a grammar rule, where FIRST(alpha) contains Ɛ, then add FIRST(B) to FIRST(A)
-//                    if (c != rule.RHS.size())
-//                    {
-//                        auto itr1 = find(indexOf_first_sets.begin(), indexOf_first_sets.end(), rule.RHS[c]);
-//                        indexC = distance(indexOf_first_sets.begin(), itr1);
-//                        for (auto i: first_sets[indexC])
-//                        {
-//                            if (i != "#")
-//                            {
-//                                if (!count(first_sets[indexOfA].begin(), first_sets[indexOfA].end(), i))
-//                                {
-//                                    first_sets[indexOfA].push_back(i);
-//                                    change = true;
-//                                }
-//
-//                            }
-//                        }
-//                        c++;
-//                    }
-//                        //V If A -> B alpha is a grammar rule, where FIRST(alpha) contains Ɛ, then add Ɛ to FIRST(A)
-//                    else
-//                    {
-//                        if (!count(first_sets[indexOfA].begin(), first_sets[indexOfA].end(), "#"))
-//                        {
-//                            first_sets[indexOfA].push_back("#");
-//                            change = true;
-//                        }
-//                        c = -1;
-//                    }
-//                }
-//                else
-//                {
-//                    c = -1;
-//                }
-//            }
         }
     }
 }
 
-// Task 4
-
-//
-//
+// Task 4: Calculate Follow Sets
 void CalculateFollowSets()
 {
     CalculateFirstSets();
-    //I add $ to S
-    vector<string> one_follow_set;
-    indexOf_follow_sets.push_back(non_terms[0]);
-    one_follow_set.emplace_back("$");
-    follow_sets.push_back(one_follow_set);
-    one_follow_set.clear();
 
-    //initailize all to empty
-    for (auto i: all_elements)
+    // Initialize all follow sets to empty except the first set which is for the start symbol
+    follow_sets.resize(non_terms.size(), {});
+    indexOf_follow_sets.resize(non_terms.size());
+    indexOf_follow_sets[0] = non_terms[0];
+
+    // Add $ to the first set which is for the start symbol
+    follow_sets[0].push_back("$");
+
+    for (size_t i = 0; i < non_terms.size(); ++i)
     {
-        if (count(non_terms.begin(), non_terms.end(), i)) {
-            if (i != non_terms[0])
-            {
-                indexOf_follow_sets.push_back(i);
-                follow_sets.push_back(one_follow_set);
-                one_follow_set.clear();
-            }
-
-        }
+        indexOf_follow_sets[i] = non_terms[i];
     }
 
-    //apply IV and V to all rules
-    for (auto rule: rules_struct)
-    {
-        if (rule.RHS.size() >= 2)
-        {
-            int index_count = 1;
-            while (index_count>0)
-            {
-                auto itr = find(indexOf_follow_sets.begin(), indexOf_follow_sets.end(), rule.RHS[index_count - 1]);
-                int indexA = distance(indexOf_follow_sets.begin(), itr);
-
-
-                if (index_count  == rule.RHS.size())
-                {
-                    auto itr1 = find(indexOf_first_sets.begin(), indexOf_first_sets.end(), rule.RHS[index_count]);
-                    int indexB = distance(indexOf_first_sets.begin(), itr1);
-                    if (indexB < first_sets.size())
-                    {
-                        for (auto i: first_sets[indexB])
-                        {
-                            if (i != "#")
-                            {
-                                if (!count(follow_sets[indexA].begin(), follow_sets[indexA].end(), i))
-                                {
-                                    follow_sets[indexA].push_back(i);
-                                }
-
-                            }
-                        }
-                    }
-                    index_count = -1;
-                }
-                else
-                {
-                    auto itr1 = find(indexOf_first_sets.begin(), indexOf_first_sets.end(), rule.RHS[index_count]);
-                    int indexB = distance(indexOf_first_sets.begin(), itr1);
-                    for (auto i: first_sets[indexB])
-                    {
-                        if (i != "#")
-                        {
-                            if (indexA < follow_sets.size())
-                            {
-                                if (!count(follow_sets[indexA].begin(), follow_sets[indexA].end(), i))
-                                {
-                                    follow_sets[indexA].push_back(i);
-                                }
-                            }
-
-                        }
-                    }
-
-                    index_count++;
-
-                }
-            }
-
-            index_count = 1;
-            while (index_count>0)
-            {
-                vector<string>::iterator itr2 = find(indexOf_follow_sets.begin(), indexOf_follow_sets.end(), rule.RHS[index_count - 1]);
-                int indexA = distance(indexOf_follow_sets.begin(), itr2);
-                int count2 = 1;
-                while(count2 >0)
-                {
-                    if ((index_count + count2)-1 == rule.RHS.size())
-                    {
-                        count2 = -1;
-                        break;
-                    }
-                    else
-                    {
-                        auto itr2 = find(indexOf_first_sets.begin(), indexOf_first_sets.end(), rule.RHS[(index_count + count2) - 1]);
-                        int indexB = distance(indexOf_first_sets.begin(), itr2);
-
-                        if (count(first_sets[indexB].begin(), first_sets[indexB].end(), "#"))
-                        {
-                            auto itr6 = find(indexOf_first_sets.begin(), indexOf_first_sets.end(), rule.RHS[index_count + count2 ]);
-                            int indexC = distance(indexOf_first_sets.begin(), itr6);
-                            for (auto i: first_sets[indexC])
-                            {
-                                if (i != "#")
-                                {
-                                    if (indexA < follow_sets.size())
-                                    {
-                                        if (!count(follow_sets[indexA].begin(), follow_sets[indexA].end(), i))
-                                        {
-                                            follow_sets[indexA].push_back(i);
-                                        }
-                                    }
-
-                                }
-                            }
-                            count2++;
-
-                        }
-                        else
-                        {
-                            count2 = -1;
-                            break;
-                        }
-
-                    }
-                }
-
-                if (index_count >= rule.RHS.size())
-                {
-                    index_count = -1;
-                    break;
-                }
-                else
-                {
-                    index_count++;
-                }
-
-            }
-        }
-    }
-
-    //apply II iii
     bool change = true;
-    while(change)
+    while (change)
     {
         change = false;
-        for (auto rule: rules_struct)
+
+        for (const auto& rule : rules_struct)
         {
-            auto itr2 = find(indexOf_follow_sets.begin(), indexOf_follow_sets.end(), rule.LHS);
-            int indexA = distance(indexOf_follow_sets.begin(), itr2);
-
-            if (rule.RHS.size() > 0)
+            for (size_t j = 0; j < rule.RHS.size(); ++j)
             {
-                auto itr15 = find(indexOf_follow_sets.begin(), indexOf_follow_sets.end(), rule.RHS.back());
-                int indexB = distance(indexOf_follow_sets.begin(), itr15);
-                if (indexB < follow_sets.size())
+                if (count(non_terms.begin(), non_terms.end(), rule.RHS[j]))
                 {
-                    for (auto i: follow_sets[indexA])
+                    size_t indexA = distance(non_terms.begin(), find(non_terms.begin(), non_terms.end(), rule.RHS[j]));
+                    size_t indexB = j + 1;
+                    while (indexB < rule.RHS.size())
                     {
-                        if (!count(follow_sets[indexB].begin(), follow_sets[indexB].end(), i))
-                        {
-                            follow_sets[indexB].push_back(i);
-                            change = true;
-                        }
-                    }
-                }
+                        auto itr1 = find(indexOf_first_sets.begin(), indexOf_first_sets.end(), rule.RHS[indexB]);
+                        size_t indexC = distance(indexOf_first_sets.begin(), itr1);
 
-                if (rule.RHS.size() > 1)
-                {
-                    int index_back = rule.RHS.size() ;
-                    while (index_back > 0)
-                    {
-                        if (index_back > 1)
+                        for (const auto& symbol : first_sets[indexC])
                         {
-                            auto itr7 = find(indexOf_first_sets.begin(), indexOf_first_sets.end(), rule.RHS[index_back - 1]);
-                            int indexC = distance(indexOf_first_sets.begin(), itr7);
-                            if (count(first_sets[indexC].begin(), first_sets[indexC].end(), "#"))
+                            if (symbol != "#")
                             {
-                                auto itr8 = find(indexOf_follow_sets.begin(), indexOf_follow_sets.end(), rule.RHS[index_back - 2]);
-                                int indexD = distance(indexOf_follow_sets.begin(), itr8);
-                                if (indexD < follow_sets.size())
+                                if (AddToSetIfNotPresent(follow_sets[indexA], symbol))
                                 {
-                                    for (auto i: follow_sets[indexA])
+                                    change = true;
+                                }
+                            }
+                            else
+                            {
+                                if (indexB == rule.RHS.size() - 1)
+                                {
+                                    size_t indexD = distance(non_terms.begin(), find(non_terms.begin(), non_terms.end(), rule.LHS));
+                                    for (const auto& symbol : follow_sets[indexD])
                                     {
-                                        if (!count(follow_sets[indexD].begin(), follow_sets[indexD].end(), i))
+                                        if (AddToSetIfNotPresent(follow_sets[indexA], symbol))
                                         {
-                                            follow_sets[indexD].push_back(i);
                                             change = true;
                                         }
                                     }
                                 }
-                                index_back--;
                             }
-                            else
-                            {
-                                break;
-                            }
-
                         }
-                        else
+
+                        if (!count(first_sets[indexC].begin(), first_sets[indexC].end(), "#"))
                         {
                             break;
+                        }
+
+                        ++indexB;
+                    }
+
+                    if (indexB == rule.RHS.size())
+                    {
+                        size_t indexD = distance(non_terms.begin(), find(non_terms.begin(), non_terms.end(), rule.LHS));
+                        for (const auto& symbol : follow_sets[indexD])
+                        {
+                            if (AddToSetIfNotPresent(follow_sets[indexA], symbol))
+                            {
+                                change = true;
+                            }
                         }
                     }
                 }
@@ -790,90 +621,234 @@ void CalculateFollowSets()
         }
     }
 }
-//void CalculateFollowSets() {
+
+
+
+
+
+
+
+//void CalculateFollowSets()
+//{
 //    CalculateFirstSets();
+//    //I add $ to S
+//    vector<string> one_follow_set;
 //    indexOf_follow_sets.push_back(non_terms[0]);
-//    follow_sets.resize(indexOf_follow_sets.size());
+//    one_follow_set.emplace_back("$");
+//    follow_sets.push_back(one_follow_set);
+//    one_follow_set.clear();
 //
-//    follow_sets[0].push_back("$");
+//    //initailize all to empty
+//    for (auto i: all_elements)
+//    {
+//        if (count(non_terms.begin(), non_terms.end(), i)) {
+//            if (i != non_terms[0])
+//            {
+//                indexOf_follow_sets.push_back(i);
+//                follow_sets.push_back(one_follow_set);
+//                one_follow_set.clear();
+//            }
 //
-//    bool changed;
-//    do {
-//        changed = false;
-//        for (auto& rule : rules_struct) { // for each rule
-//            auto itr0= find(non_terms.begin(), non_terms.end(), rule.LHS);  // find index of LHS in non_terms
-//            int lhs_index = distance(non_terms.begin(), itr0);
-//            for (size_t i = 0; i < rule.RHS.size(); i++) { // for each element in RHS
-//                int rhs_index = FindIndexOfElement(rule.RHS[i]); //
-//                if (rhs_index < 0) {
-//                    // skip terminals
-//                    continue;
-//                }
-//                // apply rule IV
-//                if (i < rule.RHS.size() - 1) {
-//                    for (auto& f : first_sets[rhs_index]) {
-//                        if (f != "#") {
-//                            if (AddToSetIfNotPresent(follow_sets[rhs_index + 1], f)) {
-//                                changed = true;
+//        }
+//    }
+//    //apply IV and V to all rules
+//    for (auto rule: rules_struct)
+//    {
+//        if (rule.RHS.size() >= 2)
+//        {
+//            int index_count = 1;
+//            while (index_count>0)
+//            {
+//                auto itr = find(indexOf_follow_sets.begin(), indexOf_follow_sets.end(), rule.RHS[index_count - 1]);
+//                int indexA = distance(indexOf_follow_sets.begin(), itr);
+//
+//
+//                if (index_count  == rule.RHS.size())
+//                {
+//                    auto itr1 = find(indexOf_first_sets.begin(), indexOf_first_sets.end(), rule.RHS[index_count]);
+//                    int indexB = distance(indexOf_first_sets.begin(), itr1);
+//                    if (indexB < first_sets.size())
+//                    {
+//                        for (auto i: first_sets[indexB])
+//                        {
+//                            if (i != "#")
+//                            {
+//                                AddToSetIfNotPresent(follow_sets[indexA], i);
 //                            }
 //                        }
 //                    }
+//                    index_count = -1;
 //                }
-//                // apply rule V
-//                if (i == rule.RHS.size() - 1) {
-//                    for (auto& f : follow_sets[lhs_index]) {
-//                        if (AddToSetIfNotPresent(follow_sets[rhs_index], f)) {
-//                            changed = true;
+//                else
+//                {
+//                    auto itr1 = find(indexOf_first_sets.begin(), indexOf_first_sets.end(), rule.RHS[index_count]);
+//                    int indexB = distance(indexOf_first_sets.begin(), itr1);
+//                    for (auto i: first_sets[indexB])
+//                    {
+//                        if (i != "#")
+//                        {
+//                            if (indexA < follow_sets.size())
+//                            {
+//                                AddToSetIfNotPresent(follow_sets[indexA], i);
+//                            }
+//
 //                        }
 //                    }
+//
+//                    index_count++;
+//
 //                }
-//                // apply rule III
-//                if (i < rule.RHS.size() - 1) {
-//                    bool all_epsilon = true;
-//                    for (size_t j = i + 1; j < rule.RHS.size(); j++) {
-//                        int next_index = FindIndexOfElement(rule.RHS[j]);
-//                        if (next_index < 0) {
-//                            // skip terminals
-//                            continue;
-//                        }
-//                        int cena= count(first_sets[next_index].begin(),first_sets[next_index].end(),"#");
-//                        all_epsilon &= cena>0;
-//                        for (auto& f : first_sets[next_index]) {
-//                            if (f != "#") {
-//                                if (AddToSetIfNotPresent(follow_sets[rhs_index], f)) {
-//                                    changed = true;
+//            }
+//
+//            index_count = 1;
+//            while (index_count>0)
+//            {
+//                vector<string>::iterator itr2 = find(indexOf_follow_sets.begin(), indexOf_follow_sets.end(), rule.RHS[index_count - 1]);
+//                int indexA = distance(indexOf_follow_sets.begin(), itr2);
+//                int count2 = 1;
+//                while(count2 >0)
+//                {
+//                    if ((index_count + count2)-1 == rule.RHS.size())
+//                    {
+//                        count2 = -1;
+//                        break;
+//                    }
+//                    else
+//                    {
+//                        auto itr2 = find(indexOf_first_sets.begin(), indexOf_first_sets.end(), rule.RHS[(index_count + count2) - 1]);
+//                        int indexB = distance(indexOf_first_sets.begin(), itr2);
+//
+//                        if (count(first_sets[indexB].begin(), first_sets[indexB].end(), "#"))
+//                        {
+//                            auto itr6 = find(indexOf_first_sets.begin(), indexOf_first_sets.end(), rule.RHS[index_count + count2 ]);
+//                            int indexC = distance(indexOf_first_sets.begin(), itr6);
+//                            for (auto i: first_sets[indexC])
+//                            {
+//                                if (i != "#")
+//                                {
+//                                    if (indexA < follow_sets.size())
+//                                    {
+//                                        AddToSetIfNotPresent(follow_sets[indexA], i);
+//                                    }
+//
 //                                }
 //                            }
+//                            count2++;
+//
 //                        }
-//                        if (!all_epsilon) {
+//                        else
+//                        {
+//                            count2 = -1;
 //                            break;
 //                        }
+//
 //                    }
-//                    if (all_epsilon) {
-//                        for (auto& f : follow_sets[lhs_index]) {
-//                            if (AddToSetIfNotPresent(follow_sets[rhs_index], f)) {
-//                                changed = true;
+//                }
+//
+//                if (index_count >= rule.RHS.size())
+//                {
+//                    index_count = -1;
+//                    break;
+//                }
+//                else
+//                {
+//                    index_count++;
+//                }
+//
+//            }
+//        }
+//    }
+//
+//    //apply II iii
+//    bool change = true;
+//    while(change)
+//    {
+//        change = false;
+//        for (auto rule: rules_struct)
+//        {
+//            auto itr2 = find(indexOf_follow_sets.begin(), indexOf_follow_sets.end(), rule.LHS);
+//            int indexA = distance(indexOf_follow_sets.begin(), itr2);
+//
+//            if (rule.RHS.size() > 0)
+//            {
+//                auto itr15 = find(indexOf_follow_sets.begin(), indexOf_follow_sets.end(), rule.RHS.back());
+//                int indexB = distance(indexOf_follow_sets.begin(), itr15);
+//                if (indexB < follow_sets.size())
+//                {
+//                    for (auto i: follow_sets[indexA])
+//                    {
+//                        if (AddToSetIfNotPresent(follow_sets[indexB], i))
+//                        {
+//                            change = true;
+//                        }
+//                    }
+//                }
+//
+//                if (rule.RHS.size() > 1)
+//                {
+//                    int index_back = rule.RHS.size() ;
+//                    while (index_back > 0)
+//                    {
+//                        if (index_back > 1)
+//                        {
+//                            auto itr7 = find(indexOf_first_sets.begin(), indexOf_first_sets.end(), rule.RHS[index_back - 1]);
+//                            int indexC = distance(indexOf_first_sets.begin(), itr7);
+//                            if (count(first_sets[indexC].begin(), first_sets[indexC].end(), "#"))
+//                            {
+//                                auto itr8 = find(indexOf_follow_sets.begin(), indexOf_follow_sets.end(), rule.RHS[index_back - 2]);
+//                                int indexD = distance(indexOf_follow_sets.begin(), itr8);
+//                                if (indexD < follow_sets.size())
+//                                {
+//                                    for (auto i: follow_sets[indexA])
+//                                    {
+//                                        if (AddToSetIfNotPresent(follow_sets[indexD], i))
+//                                        {
+//                                            change = true;
+//                                        }
+//                                    }
+//                                }
+//                                index_back--;
 //                            }
+//                            else
+//                            {
+//                                break;
+//                            }
+//
+//                        }
+//                        else
+//                        {
+//                            break;
 //                        }
 //                    }
 //                }
 //            }
 //        }
-//    } while (changed);
+//    }
 //}
-int numberofEpsilion(vector<string> vec)
-{
-    int count=0;
-    for (auto i: vec)
+
+
+bool IsNonTerminal(string symbol){
+    if(find(non_terms.begin(), non_terms.end(), symbol) != non_terms.end())
     {
-        if (i=="#")
-        {
-            count++;
-        }
+        return true;
     }
-    return count;
+    else
+    {
+        return false;
+    }
 }
 
+int GetIndex(string symbol){
+    auto itr = find(non_terms.begin(), non_terms.end(), symbol);
+    int index = distance(non_terms.begin(), itr);
+    return index;
+}
+vector<string> s(vector<string> const &v, int m, int n) {
+    auto first = v.begin() + m;
+    auto last = v.begin() + n + 1;
+    vector<string> vector(first, last);
+    return vector;
+}
 
 
 
