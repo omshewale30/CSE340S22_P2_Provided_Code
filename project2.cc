@@ -5,16 +5,13 @@
  */
 //This is the exp branch of the project
 #include <iostream>
-#include <cstdio>
 #include <cstdlib>
 #include "lexer.h"
 #include <string>
-#include <map>
 #include <vector>
 #include <algorithm>
 #include <unordered_set>
 using namespace std;
-
 
 void parse_Grammar();
 void parse_Rule_list();
@@ -33,15 +30,14 @@ vector<string> all_elements;
 vector<string> universe;
 vector<bool> generating_table;
 vector<string> reachable_symbols;
+bool foundInVector(vector<string> v, string element);
 
 //part2
-vector<vector<string>> rules; //all the rules of the grammar
-struct rule {
+struct rule { // struct to store rules
     string LHS;
     vector<string> RHS;
 };
-vector<rule> rules_struct;
-//vector<vector<string>> genRules;
+vector<rule> rules_struct; // vector of rules
 vector<rule> genRules;
 vector<rule>final_genRules;
 
@@ -54,9 +50,6 @@ vector<string> indexOf_first_sets;
 vector<vector<string>> follow_sets;
 vector<string> indexOf_follow_sets;
 bool AddToSetIfNotPresent(vector<string> &set, string element);
-int FindIndexOfElement(string element);
-
-int numberofEpsilion(vector<string> vec);
 
 // read grammar
 void ReadGrammar()
@@ -64,21 +57,31 @@ void ReadGrammar()
     parse_Grammar();
     element_check(END_OF_FILE);
 
-    universe.push_back("#");
-    universe.push_back("$");
-    for (auto i: terminals)
-    {
-        if(!(find(non_terms.begin(), non_terms.end(), i) != non_terms.end()))  { //adding all terminals not present in non_terms in universe
+    universe.emplace_back("#");
+    universe.emplace_back("$");
+    for(auto i : all_elements) {
+        if(!foundInVector(non_terms, i)) { // adding all terminals not present in non_terms in universe
+            if(foundInVector(terminals, i)) {
+                universe.push_back(i);
+            }
+        } else { // adding common items in all_terms and non_terms in universe
             universe.push_back(i);
         }
+    }
 
-    }
-    for (auto i: all_elements)
-    {
-        if (find(non_terms.begin(), non_terms.end(), i) != non_terms.end()) { //adding common items in all_terms and non_terms in universe
-            universe.push_back(i);
-        }
-    }
+//    for (auto i: terminals)
+//    {
+//        if(!foundInVector(non_terms,i)){   //adding all terminals not present in non_terms in universe
+//            universe.push_back(i);
+//        }
+//
+//    }
+//    for (auto i: all_elements)
+//    {
+//        if (foundInVector(non_terms,i)){      //adding common items in all_terms and non_terms in universe
+//            universe.push_back(i);
+//        }
+//    }
 
 }
 
@@ -113,7 +116,6 @@ void parse_Rule()
     //LHS are non-terminals
     struct rule r;
     Token temp = element_check(ID);
-    //rule.push_back(temp.lexeme); //add LHS to rule
     r.LHS = temp.lexeme;
     addNonTerminals(temp.lexeme); //add LHS to non_terminals
 
@@ -183,11 +185,11 @@ void syntax_error()
 
 void addTerminals(string element)
 {
-    if (!(find(all_elements.begin(), all_elements.end(), element) != all_elements.end())) { //if element is not in all_elements then add it to all_elements
+    if (!foundInVector(all_elements,element)){ //if element is not in all_elements then add it to all_elements
         all_elements.push_back(element);
     }
 
-    if (find(terminals.begin(), terminals.end(), element) != terminals.end()) {  //if element is in terminals then return
+    if (foundInVector(terminals,element)){//if element is in terminals then return
         return;
     }
     else {
@@ -197,11 +199,11 @@ void addTerminals(string element)
 
 void addNonTerminals(string element)
 {
-    if (!count(all_elements.begin(), all_elements.end(), element)) {//if element is not in all_elements then add it to all_elements
+    if (!foundInVector(all_elements,element)){//if element is not in all_elements then add it to all_elements
         all_elements.push_back(element);
     }
 
-    if (count(non_terms.begin(), non_terms.end(), element)) { //if element is in non_terms then return
+    if (foundInVector(non_terms,element)){ //if element is in non_terms then return
         return;
     }
     else {
@@ -215,22 +217,22 @@ void printTerminalsAndNoneTerminals()
 
     for (auto i: terminals) //
     {
-        if (!count(non_terms.begin(), non_terms.end(), i)) { //if i is not in non_terms then print it (i.e. i is a terminal)
+        if (!foundInVector(non_terms,i)){//if i is not in non_terms then print it (i.e. i is a terminal)
             cout << i << ' ';
         }
 
     }
     for (auto i: all_elements)
     {
-        if (count(non_terms.begin(), non_terms.end(), i)) { //if i is in non_terms then print it (i.e. i is a non-terminal)
+        if (foundInVector(non_terms,i)) { //if i is in non_terms then print it (i.e. i is a non-terminal)
             cout << i << ' ';
         }
     }
     cout << " ";
 }
-// Task 2
 
-bool foundInVector(vector<string> v, string element)
+// Task 2
+bool foundInVector(vector<string> v, string element)  //function to check if element is in vector
 {
    if(count(v.begin(), v.end(), element))
        return true;
@@ -238,7 +240,7 @@ bool foundInVector(vector<string> v, string element)
        return false;
 }
 
-int GetIndex(vector<string> v,string symbol){
+int GetIndex(vector<string> v,string symbol){  //function to get index of symbol in vector
     auto itr = find(v.begin(), v.end(), symbol);
     int index = distance(v.begin(), itr);
     return index;
@@ -286,62 +288,6 @@ void RemoveUselessSymbols()
         }
     }
 
-//    bool continue1 = true;
-//    //iteration of generating tables
-//    while (continue1)
-//    {
-//        continue1 = false;
-//        for (auto rule: rules_struct) //for each rule
-//        {
-//            auto temp_rule = rule;
-//           // rule.LHS.erase(); //remove LHS
-//            bool is_Generating = false;
-//            for (auto i : rule.RHS)  //for each symbol in RHS
-//            {
-//                index = GetIndex(universe,i); //get the index of i in universe
-//                if (generating_table[index]) //if the index is not generating then set is_Generating to false
-//                {
-//                    is_Generating = true;  //if the index is generating then set is_Generating to true
-//                }
-//                else
-//                {
-//                    is_Generating = false;
-//                    break;
-//                }
-//            }
-//            if (is_Generating) //if is_Generating is true then set the index of LHS to true
-//            {
-//                index = GetIndex(universe,temp_rule.LHS); //get the index of LHS in universe
-//                if (!generating_table[index]) //if the index is not generating then set it to true
-//                {
-//                    generating_table[index] = true; //set the index of LHS to true
-//                    continue1 = true;  //continue the loop
-//                }
-//            }
-//        }
-//    }
-//
-//    for (auto rule_: rules_struct) //removing rules with non generating symbols
-//    {
-//        bool isGen = true;
-//        //checking if RHS is generating
-//        for (auto i: rule_.RHS)
-//        {
-//            index = GetIndex(universe,i);
-//            if (!generating_table[index]) //if the index is not generating then set isgenerating to false
-//            {
-//                isGen = false;
-//                break;
-//            }
-//        }
-//
-//        if (isGen) //if LHS and RHS are generating then add the rule to genRules
-//        {
-//            genRules.push_back(rule_);
-//        }
-//
-//    }
-
     if (!genRules.empty())  //if genRules is not empty then add the first nonterminal to reachable_symbols
         reachable_symbols.push_back(non_terms[0]); //add the first nonterminal to reachable_symbols
 
@@ -356,16 +302,16 @@ void RemoveUselessSymbols()
 
                 for (auto i : rule.RHS)
                 {
-                    if (!foundInVector(reachable_symbols,i))
+                    if (AddToSetIfNotPresent(reachable_symbols,i))
                     {
-                        reachable_symbols.push_back(i);
                         continue1 = true;
                     }
                 }
             }
         }
-
     }
+
+
     //deleting rules with non reachable symbols
     bool final_gen=false;
     for (auto rule: genRules)
@@ -398,13 +344,10 @@ void RemoveUselessSymbols()
 
 // Task 3
 int FindIndexOfElementInFirstSetsIndices(string element) {
-    auto itr = find(indexOf_first_sets.begin(), indexOf_first_sets.end(), element);
-    return distance(indexOf_first_sets.begin(), itr);
-
+    return GetIndex(indexOf_first_sets, element);
 }
 int FindIndexOfElementInFollowSetsIndices(string element) {
-    auto itr = find(indexOf_follow_sets.begin(), indexOf_follow_sets.end(), element);
-    return distance(indexOf_follow_sets.begin(), itr);
+    return GetIndex(indexOf_follow_sets, element);
 }
 
 bool AddToSetIfNotPresent(vector<string>& set, string element) {
@@ -542,14 +485,13 @@ void CalculateFollowSets()
         {
             for (size_t j = 0; j < rule.RHS.size(); ++j)
             {
-                if (count(non_terms.begin(), non_terms.end(), rule.RHS[j]))
+                if (foundInVector(non_terms,rule.RHS[j]))  // If the symbol is a non terminal
                 {
-                    size_t indexA = distance(non_terms.begin(), find(non_terms.begin(), non_terms.end(), rule.RHS[j]));
+                    size_t indexA = GetIndex(non_terms,rule.RHS[j]);
                     size_t indexB = j + 1;
                     while (indexB < rule.RHS.size())
                     {
-                        auto itr1 = find(indexOf_first_sets.begin(), indexOf_first_sets.end(), rule.RHS[indexB]);
-                        size_t indexC = distance(indexOf_first_sets.begin(), itr1);
+                        size_t indexC = GetIndex(indexOf_first_sets, rule.RHS[indexB]);
 
                         for (const auto& symbol : first_sets[indexC])
                         {
@@ -564,7 +506,7 @@ void CalculateFollowSets()
                             {
                                 if (indexB == rule.RHS.size() - 1)
                                 {
-                                    size_t indexD = distance(non_terms.begin(), find(non_terms.begin(), non_terms.end(), rule.LHS));
+                                    size_t indexD = GetIndex(non_terms,rule.LHS);
                                     for (const auto& symbol : follow_sets[indexD])
                                     {
                                         if (AddToSetIfNotPresent(follow_sets[indexA], symbol))
@@ -586,7 +528,7 @@ void CalculateFollowSets()
 
                     if (indexB == rule.RHS.size())
                     {
-                        size_t indexD = distance(non_terms.begin(), find(non_terms.begin(), non_terms.end(), rule.LHS));
+                        size_t indexD = GetIndex(non_terms,rule.LHS);
                         for (const auto& symbol : follow_sets[indexD])
                         {
                             if (AddToSetIfNotPresent(follow_sets[indexA], symbol))
@@ -601,205 +543,6 @@ void CalculateFollowSets()
     }
 }
 
-//void CalculateFollowSets()
-//{
-//    CalculateFirstSets();
-//    //I add $ to S
-//    vector<string> one_follow_set;
-//    indexOf_follow_sets.push_back(non_terms[0]);
-//    one_follow_set.emplace_back("$");
-//    follow_sets.push_back(one_follow_set);
-//    one_follow_set.clear();
-//
-//    //initailize all to empty
-//    for (auto i: all_elements)
-//    {
-//        if (count(non_terms.begin(), non_terms.end(), i)) {
-//            if (i != non_terms[0])
-//            {
-//                indexOf_follow_sets.push_back(i);
-//                follow_sets.push_back(one_follow_set);
-//                one_follow_set.clear();
-//            }
-//
-//        }
-//    }
-//    //apply IV and V to all rules
-//    for (auto rule: rules_struct)
-//    {
-//        if (rule.RHS.size() >= 2)
-//        {
-//            int index_count = 1;
-//            while (index_count>0)
-//            {
-//                auto itr = find(indexOf_follow_sets.begin(), indexOf_follow_sets.end(), rule.RHS[index_count - 1]);
-//                int indexA = distance(indexOf_follow_sets.begin(), itr);
-//
-//
-//                if (index_count  == rule.RHS.size())
-//                {
-//                    auto itr1 = find(indexOf_first_sets.begin(), indexOf_first_sets.end(), rule.RHS[index_count]);
-//                    int indexB = distance(indexOf_first_sets.begin(), itr1);
-//                    if (indexB < first_sets.size())
-//                    {
-//                        for (auto i: first_sets[indexB])
-//                        {
-//                            if (i != "#")
-//                            {
-//                                AddToSetIfNotPresent(follow_sets[indexA], i);
-//                            }
-//                        }
-//                    }
-//                    index_count = -1;
-//                }
-//                else
-//                {
-//                    auto itr1 = find(indexOf_first_sets.begin(), indexOf_first_sets.end(), rule.RHS[index_count]);
-//                    int indexB = distance(indexOf_first_sets.begin(), itr1);
-//                    for (auto i: first_sets[indexB])
-//                    {
-//                        if (i != "#")
-//                        {
-//                            if (indexA < follow_sets.size())
-//                            {
-//                                AddToSetIfNotPresent(follow_sets[indexA], i);
-//                            }
-//
-//                        }
-//                    }
-//
-//                    index_count++;
-//
-//                }
-//            }
-//
-//            index_count = 1;
-//            while (index_count>0)
-//            {
-//                vector<string>::iterator itr2 = find(indexOf_follow_sets.begin(), indexOf_follow_sets.end(), rule.RHS[index_count - 1]);
-//                int indexA = distance(indexOf_follow_sets.begin(), itr2);
-//                int count2 = 1;
-//                while(count2 >0)
-//                {
-//                    if ((index_count + count2)-1 == rule.RHS.size())
-//                    {
-//                        count2 = -1;
-//                        break;
-//                    }
-//                    else
-//                    {
-//                        auto itr2 = find(indexOf_first_sets.begin(), indexOf_first_sets.end(), rule.RHS[(index_count + count2) - 1]);
-//                        int indexB = distance(indexOf_first_sets.begin(), itr2);
-//
-//                        if (count(first_sets[indexB].begin(), first_sets[indexB].end(), "#"))
-//                        {
-//                            auto itr6 = find(indexOf_first_sets.begin(), indexOf_first_sets.end(), rule.RHS[index_count + count2 ]);
-//                            int indexC = distance(indexOf_first_sets.begin(), itr6);
-//                            for (auto i: first_sets[indexC])
-//                            {
-//                                if (i != "#")
-//                                {
-//                                    if (indexA < follow_sets.size())
-//                                    {
-//                                        AddToSetIfNotPresent(follow_sets[indexA], i);
-//                                    }
-//
-//                                }
-//                            }
-//                            count2++;
-//
-//                        }
-//                        else
-//                        {
-//                            count2 = -1;
-//                            break;
-//                        }
-//
-//                    }
-//                }
-//
-//                if (index_count >= rule.RHS.size())
-//                {
-//                    index_count = -1;
-//                    break;
-//                }
-//                else
-//                {
-//                    index_count++;
-//                }
-//
-//            }
-//        }
-//    }
-//
-//    //apply II iii
-//    bool change = true;
-//    while(change)
-//    {
-//        change = false;
-//        for (auto rule: rules_struct)
-//        {
-//            auto itr2 = find(indexOf_follow_sets.begin(), indexOf_follow_sets.end(), rule.LHS);
-//            int indexA = distance(indexOf_follow_sets.begin(), itr2);
-//
-//            if (rule.RHS.size() > 0)
-//            {
-//                auto itr15 = find(indexOf_follow_sets.begin(), indexOf_follow_sets.end(), rule.RHS.back());
-//                int indexB = distance(indexOf_follow_sets.begin(), itr15);
-//                if (indexB < follow_sets.size())
-//                {
-//                    for (auto i: follow_sets[indexA])
-//                    {
-//                        if (AddToSetIfNotPresent(follow_sets[indexB], i))
-//                        {
-//                            change = true;
-//                        }
-//                    }
-//                }
-//
-//                if (rule.RHS.size() > 1)
-//                {
-//                    int index_back = rule.RHS.size() ;
-//                    while (index_back > 0)
-//                    {
-//                        if (index_back > 1)
-//                        {
-//                            auto itr7 = find(indexOf_first_sets.begin(), indexOf_first_sets.end(), rule.RHS[index_back - 1]);
-//                            int indexC = distance(indexOf_first_sets.begin(), itr7);
-//                            if (count(first_sets[indexC].begin(), first_sets[indexC].end(), "#"))
-//                            {
-//                                auto itr8 = find(indexOf_follow_sets.begin(), indexOf_follow_sets.end(), rule.RHS[index_back - 2]);
-//                                int indexD = distance(indexOf_follow_sets.begin(), itr8);
-//                                if (indexD < follow_sets.size())
-//                                {
-//                                    for (auto i: follow_sets[indexA])
-//                                    {
-//                                        if (AddToSetIfNotPresent(follow_sets[indexD], i))
-//                                        {
-//                                            change = true;
-//                                        }
-//                                    }
-//                                }
-//                                index_back--;
-//                            }
-//                            else
-//                            {
-//                                break;
-//                            }
-//
-//                        }
-//                        else
-//                        {
-//                            break;
-//                        }
-//                    }
-//                }
-//            }
-//        }
-//    }
-//}
-
-
 bool IsNonTerminal(string symbol){
     if(find(non_terms.begin(), non_terms.end(), symbol) != non_terms.end())
     {
@@ -811,11 +554,6 @@ bool IsNonTerminal(string symbol){
     }
 }
 
-int GetIndex(string symbol){
-    auto itr = find(non_terms.begin(), non_terms.end(), symbol);
-    int index = distance(non_terms.begin(), itr);
-    return index;
-}
 vector<string> s(vector<string> const &v, int m, int n) {
     auto first = v.begin() + m;
     auto last = v.begin() + n + 1;
@@ -828,36 +566,150 @@ vector<string> s(vector<string> const &v, int m, int n) {
 // Task 5
 void CheckIfGrammarHasPredictiveParser()
 {
+    bool pr= false;
+    vector<string> non_reachable_symbols;
+    generating_table.push_back(true); //first element is true
+    generating_table.push_back(false);
+    int index;
+    //creating generating table
+    for (auto i: universe)
+    {
+        if (i != "#" && i != "$" ) //if symbol in universe is not # and $ then
+        {
+            if (!foundInVector(non_terms,i)) { //all terminals are generating
+                generating_table.push_back(true);
+            }
+            else
+            {
+                generating_table.push_back(false); //all non-terminals are not generating
+            }
+        }
+
+    }
+    bool continue1 = true;
+    while (continue1) {  //iteration of generating tables
+        continue1 = false;
+        for (auto rule : rules_struct) {
+            bool is_generating = all_of(rule.RHS.begin(), rule.RHS.end(), [&](string i) { // get RHS of rule and check if all symbols are generating
+                return generating_table[GetIndex(universe, i)];
+            });
+            if (is_generating && !generating_table[GetIndex(universe, rule.LHS)]) { //if all symbols in RHS are generating and LHS is not generating then make LHS generating
+                generating_table[GetIndex(universe, rule.LHS)] = true;
+                continue1 = true;
+            }
+        }
+    }
+    //creating vector of generating rules
+    for (auto rule_ : rules_struct) {
+        if ( all_of(rule_.RHS.begin(), rule_.RHS.end(), [&](string i) { //if all symbols in RHS are generating then add rule to genRules
+            return generating_table[GetIndex(universe, i)];
+        })) {
+            genRules.push_back(rule_);
+        }
+        else{
+            exit(1);
+        }
+    }
+
+    if (!genRules.empty())  //if genRules is not empty then add the first nonterminal to reachable_symbols
+        reachable_symbols.push_back(non_terms[0]); //add the first nonterminal to reachable_symbols
+
+    //creating reachable symbols vector
+    continue1 = true;
+    while (continue1)
+    {
+        continue1 = false;
+        for (auto rule: genRules)
+        {
+            if (foundInVector(reachable_symbols,rule.LHS)){ //if LHS is in reachable_symbols then add RHS to reachable_symbols
+
+                for (auto i : rule.RHS)
+                {
+                    if (AddToSetIfNotPresent(reachable_symbols,i))
+                    {
+                        continue1 = true;
+                    }
+                }
+            }
+        }
+    }
+//    if (non_reachable_symbols.size()>0) //if all non terminals are reachable then grammar is LL(1)
+//    {
+//        cout << "NO\n";
+//        exit(1);
+//    }
+
+    bool has_conflict = false;
     for (auto i : non_terms)  //for each non terminal in the grammar
     {
-        int indexA = GetIndex(indexOf_first_sets, i);
-        int indexB = GetIndex(indexOf_follow_sets, i);
+        int indexA = GetIndex(indexOf_first_sets, i);  //first set of A
+        int indexB = GetIndex(indexOf_follow_sets, i);  //first set of B
         if (indexA < first_sets.size())
         {
-            if (count(first_sets[indexA].begin(), first_sets[indexA].end(), "#"))
+            if (foundInVector(first_sets[indexA], "#")) //if A contains epsilon
             {
-                for (auto k : first_sets[indexA])
+                for (auto k : first_sets[indexA]) //for each element in first set of A
                 {
-                    if (k != "#")
+                    if (k != "#") //if the element is not epsilon
                     {
                         for (auto m : follow_sets[indexB])
                         {
-                            if (m != "#")
+                            if (k == m)
                             {
-                                if (k == m)
-                                {
-                                    cout << "NO\n";
-                                    return;
-                                }
+                                has_conflict = true;
+                                break;
                             }
                         }
                     }
                 }
             }
         }
+        if (has_conflict) {
+            break;
+        }
     }
-    cout << "YES\n";
+    if (has_conflict) {
+        cout << "NO\n";
+    } else {
+        cout << "YES\n";
+    }
 }
+
+
+
+
+//void CheckIfGrammarHasPredictiveParser()
+//{
+//    for (auto i : non_terms)  //for each non terminal in the grammar
+//    {
+//        int indexA = GetIndex(indexOf_first_sets, i);
+//        int indexB = GetIndex(indexOf_follow_sets, i);
+//        if (indexA < first_sets.size())
+//        {
+//            if (count(first_sets[indexA].begin(), first_sets[indexA].end(), "#"))
+//            {
+//                for (auto k : first_sets[indexA])
+//                {
+//                    if (k != "#")
+//                    {
+//                        for (auto m : follow_sets[indexB])
+//                        {
+//                            if (m != "#")
+//                            {
+//                                if (k == m)
+//                                {
+//                                    cout << "NO\n";
+//                                    return;
+//                                }
+//                            }
+//                        }
+//                    }
+//                }
+//            }
+//        }
+//    }
+//    cout << "YES\n";
+//}
 
 
 
@@ -889,32 +741,32 @@ void CheckIfGrammarHasPredictiveParser()
 //            }
 //        }
 //        int numx = 0;
-//        for (auto rule1: rules)
+//        for (auto rule1: rules_struct)
 //        {
 //            numx++;
-//            if (rule1[0] == i)
+//            if (rule1.LHS == i)
 //            {
 //                //vector<string>::iterator itr2 = find(rules.begin(), rules.end(), rule1);
-//                vector<string> temp_rule1 = rule1;
+//                auto temp_rule1 = rule1;
 //                //int index1 = distance(rules.begin(), itr2);
 //                int numy = 0;
-//                for (auto rule2: rules)
+//                for (auto rule2: rules_struct)
 //                {
 //                    numy++;
-//                    if (rule2[0] == i)
+//                    if (rule2.LHS == i)
 //                    {
-//                        vector<string> temp_rule2 = rule2;
+//                        auto temp_rule2 = rule2;
 //                        //vector<string>::iterator itr3 = find(rules.begin(), rules.end(), rule2);
 //                        //int index2 = distance(rules.begin(), itr3);
 //                        if (numx != numy)
 //                        {
-//                            temp_rule1.erase(temp_rule1.begin());
-//                            temp_rule2.erase(temp_rule2.begin());
+//                            temp_rule1.LHS.erase();
+//                            temp_rule2.LHS.erase();
 //                            vector<string> test1;
-//                            for (auto xy: rule1)
+//                            for (auto xy: rule1.RHS)
 //                            {
 //                                vector<string>::iterator itr10 = find(indexOf_first_sets.begin(), indexOf_first_sets.end(), xy);
-//                                int indexq = distance(indexOf_first_sets.begin(), itr10);
+//                                int indexq = GetIndex(indexOf_first_sets,xy);//  distance(indexOf_first_sets.begin(), itr10);
 //                                if (indexq < first_sets.size())
 //                                {
 //                                    for (auto hxy: first_sets[indexq])
@@ -931,10 +783,10 @@ void CheckIfGrammarHasPredictiveParser()
 //                                }
 //                            }
 //                            vector<string> test2;
-//                            for (auto xy: rule2)
+//                            for (auto xy: rule2.RHS)
 //                            {
 //                                vector<string>::iterator itr10 = find(indexOf_first_sets.begin(), indexOf_first_sets.end(), xy);
-//                                int indexq = distance(indexOf_first_sets.begin(), itr10);
+//                                int indexq = GetIndex(indexOf_first_sets,xy);  //distance(indexOf_first_sets.begin(), itr10);
 //                                if (indexq < first_sets.size())
 //                                {
 //                                    for (auto hxy: first_sets[indexq])
@@ -1073,7 +925,8 @@ int main (int argc, char* argv[])
             }
             break;
 
-        case 5: CheckIfGrammarHasPredictiveParser();
+        case 5:
+            CheckIfGrammarHasPredictiveParser();
             break;
 
         default:
