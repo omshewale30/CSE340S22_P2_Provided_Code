@@ -3,7 +3,15 @@
  *               Rida Bazzi 2019
  * Do not share this file with anyone
  */
-//This is the exp branch of the project
+
+/*
+Author:Om Shewale
+Date: 3/24/2023
+Course: CSE 340
+Assignment: Project 2
+Partner-Jeffrey Frederic
+*/
+
 #include <iostream>
 #include <cstdlib>
 #include "lexer.h"
@@ -43,7 +51,7 @@ vector<rule>final_genRules;
 
 //part3
 int FindIndexOfElementInFirstSetsIndices(string element);
-vector<vector<string>> first_sets;
+vector<vector<string> > first_sets;
 vector<string> indexOf_first_sets;
 
 //part4
@@ -68,21 +76,6 @@ void ReadGrammar()
             universe.push_back(i);
         }
     }
-
-//    for (auto i: terminals)
-//    {
-//        if(!foundInVector(non_terms,i)){   //adding all terminals not present in non_terms in universe
-//            universe.push_back(i);
-//        }
-//
-//    }
-//    for (auto i: all_elements)
-//    {
-//        if (foundInVector(non_terms,i)){      //adding common items in all_terms and non_terms in universe
-//            universe.push_back(i);
-//        }
-//    }
-
 }
 
 void parse_Grammar()
@@ -123,7 +116,6 @@ void parse_Rule()
 
 
     r.RHS = parseRHS(rule); //add RHS to rule
-    // rules.push_back(rule); //add rule to rules
     rules_struct.push_back(r); //add rule to rules
 
     element_check(STAR); //end of rule
@@ -234,10 +226,10 @@ void printTerminalsAndNoneTerminals()
 // Task 2
 bool foundInVector(vector<string> v, string element)  //function to check if element is in vector
 {
-   if(count(v.begin(), v.end(), element))
-       return true;
-   else
-       return false;
+    if(count(v.begin(), v.end(), element))
+        return true;
+    else
+        return false;
 }
 
 int GetIndex(vector<string> v,string symbol){  //function to get index of symbol in vector
@@ -458,9 +450,38 @@ void CalculateFirstSets()
     }
 }
 
-// Task 4: Calculate Follow Sets
-void CalculateFollowSets()
+void printFirstSets()
 {
+    for (auto i: all_elements)
+    {
+        int num1 = 0;
+        if (foundInVector(non_terms,i)){
+            int indexD = GetIndex(indexOf_first_sets,i);
+            cout << "FIRST(" << i << ") = { ";
+            for (auto k: universe)
+            {
+                if (foundInVector(first_sets[indexD], k))
+                {
+                    num1++;
+                    if (num1 != first_sets[indexD].size())
+                    {
+                        cout << k << ", ";
+                    }
+                    else
+                    {
+                        cout << k << " ";
+                        break;
+                    }
+                }
+
+            }
+            cout << "}\n";
+        }
+    }
+}
+
+// Task 4: Calculate Follow Sets
+void CalculateFollowSets(){
     CalculateFirstSets();
 
     // Initialize all follow sets to empty except the first set which is for the start symbol
@@ -541,6 +562,32 @@ void CalculateFollowSets()
             }
         }
     }
+    for (auto i: all_elements)
+    {
+        int num1 = 0;
+        if (foundInVector(non_terms,i)) {
+            int indexD = GetIndex(indexOf_follow_sets,i);//      distance(indexOf_follow_sets.begin(), itr0);
+            cout << "FOLLOW(" << i << ") = { ";
+            for (auto k: universe)
+            {
+                if (foundInVector(follow_sets[indexD],k))
+                {
+                    num1++;
+                    if (num1 != follow_sets[indexD].size())
+                    {
+                        cout << k << ", ";
+                    }
+                    else
+                    {
+                        cout << k << " ";
+                        break;
+                    }
+                }
+
+            }
+            cout << "}\n";
+        }
+    }
 }
 
 bool IsNonTerminal(string symbol){
@@ -606,9 +653,6 @@ void CheckIfGrammarHasPredictiveParser()
         })) {
             genRules.push_back(rule_);
         }
-        else{
-            exit(1);
-        }
     }
 
     if (!genRules.empty())  //if genRules is not empty then add the first nonterminal to reachable_symbols
@@ -633,17 +677,36 @@ void CheckIfGrammarHasPredictiveParser()
             }
         }
     }
-//    if (non_reachable_symbols.size()>0) //if all non terminals are reachable then grammar is LL(1)
-//    {
-//        cout << "NO\n";
-//        exit(1);
-//    }
+    bool final_gen=false;
+    for (auto rule: genRules)
+    {
+        for(auto i: rule.RHS) {
 
+            if (!foundInVector(reachable_symbols,i)) //if any of the RHS symbols is not reachable the set the flag to false otherwise true
+            {
+                final_gen= false;
+            }
+            else{
+                final_gen= true;
+            }
+        }
+
+
+        if(final_gen== true and foundInVector(reachable_symbols,rule.LHS)){ //if the flag is true and LHS is reachable then add the rule to final_genRules
+            final_genRules.push_back(rule);
+        }
+    }
+
+    if (final_genRules.size()!=rules_struct.size()) //if final_genRules is empty then grammar is not LL(1)
+    {
+        cout << "NO\n";
+        return;
+    }
     bool has_conflict = false;
     for (auto i : non_terms)  //for each non terminal in the grammar
     {
         int indexA = GetIndex(indexOf_first_sets, i);  //first set of A
-        int indexB = GetIndex(indexOf_follow_sets, i);  //first set of B
+        int indexB = GetIndex(indexOf_follow_sets, i);  //follow set of A
         if (indexA < first_sets.size())
         {
             if (foundInVector(first_sets[indexA], "#")) //if A contains epsilon
@@ -664,174 +727,14 @@ void CheckIfGrammarHasPredictiveParser()
                 }
             }
         }
-        if (has_conflict) {
-            break;
-        }
     }
     if (has_conflict) {
         cout << "NO\n";
     } else {
         cout << "YES\n";
     }
+
 }
-
-
-
-
-//void CheckIfGrammarHasPredictiveParser()
-//{
-//    for (auto i : non_terms)  //for each non terminal in the grammar
-//    {
-//        int indexA = GetIndex(indexOf_first_sets, i);
-//        int indexB = GetIndex(indexOf_follow_sets, i);
-//        if (indexA < first_sets.size())
-//        {
-//            if (count(first_sets[indexA].begin(), first_sets[indexA].end(), "#"))
-//            {
-//                for (auto k : first_sets[indexA])
-//                {
-//                    if (k != "#")
-//                    {
-//                        for (auto m : follow_sets[indexB])
-//                        {
-//                            if (m != "#")
-//                            {
-//                                if (k == m)
-//                                {
-//                                    cout << "NO\n";
-//                                    return;
-//                                }
-//                            }
-//                        }
-//                    }
-//                }
-//            }
-//        }
-//    }
-//    cout << "YES\n";
-//}
-
-
-
-//void CheckIfGrammarHasPredictiveParser()
-//{
-//    for (auto i: non_terms)
-//    {
-//        auto itr2 = find(indexOf_first_sets.begin(), indexOf_first_sets.end(), i);
-//        int indexA = distance(indexOf_first_sets.begin(), itr2);
-//
-//        auto itr3 = find(indexOf_follow_sets.begin(), indexOf_follow_sets.end(), i);
-//        int indexB = distance(indexOf_follow_sets.begin(), itr3);
-//
-//        if (indexA < first_sets.size())
-//        {
-//            if (count(first_sets[indexA].begin(), first_sets[indexA].end(), "#"))
-//            {
-//                for (auto k: first_sets[indexA])
-//                {
-//                    for (auto m: follow_sets[indexB])
-//                    {
-//                        if (k == m)
-//                        {
-//                            cout << "NO\n";
-//                            return;
-//                        }
-//                    }
-//                }
-//            }
-//        }
-//        int numx = 0;
-//        for (auto rule1: rules_struct)
-//        {
-//            numx++;
-//            if (rule1.LHS == i)
-//            {
-//                //vector<string>::iterator itr2 = find(rules.begin(), rules.end(), rule1);
-//                auto temp_rule1 = rule1;
-//                //int index1 = distance(rules.begin(), itr2);
-//                int numy = 0;
-//                for (auto rule2: rules_struct)
-//                {
-//                    numy++;
-//                    if (rule2.LHS == i)
-//                    {
-//                        auto temp_rule2 = rule2;
-//                        //vector<string>::iterator itr3 = find(rules.begin(), rules.end(), rule2);
-//                        //int index2 = distance(rules.begin(), itr3);
-//                        if (numx != numy)
-//                        {
-//                            temp_rule1.LHS.erase();
-//                            temp_rule2.LHS.erase();
-//                            vector<string> test1;
-//                            for (auto xy: rule1.RHS)
-//                            {
-//                                vector<string>::iterator itr10 = find(indexOf_first_sets.begin(), indexOf_first_sets.end(), xy);
-//                                int indexq = GetIndex(indexOf_first_sets,xy);//  distance(indexOf_first_sets.begin(), itr10);
-//                                if (indexq < first_sets.size())
-//                                {
-//                                    for (auto hxy: first_sets[indexq])
-//                                    {
-//                                        if (!count(test1.begin(), test1.end(), hxy))
-//                                        {
-//                                            test1.push_back(hxy);
-//                                        }
-//                                    }
-//                                    if (!count(first_sets[indexq].begin(), first_sets[indexq].end(), "#"))
-//                                    {
-//                                        break;
-//                                    }
-//                                }
-//                            }
-//                            vector<string> test2;
-//                            for (auto xy: rule2.RHS)
-//                            {
-//                                vector<string>::iterator itr10 = find(indexOf_first_sets.begin(), indexOf_first_sets.end(), xy);
-//                                int indexq = GetIndex(indexOf_first_sets,xy);  //distance(indexOf_first_sets.begin(), itr10);
-//                                if (indexq < first_sets.size())
-//                                {
-//                                    for (auto hxy: first_sets[indexq])
-//                                    {
-//                                        if (!count(test2.begin(), test2.end(), hxy))
-//                                        {
-//                                            test2.push_back(hxy);
-//                                        }
-//                                    }
-//                                    if (!count(first_sets[indexq].begin(), first_sets[indexq].end(), "#"))
-//                                    {
-//                                        break;
-//                                    }
-//                                }
-//
-//                            }
-//                            for (auto x: test1)
-//                            {
-//                                for(auto y: test2)
-//                                {
-//                                    if (x == y)
-//                                    {
-//                                        cout << "NO\n";
-//                                        return;
-//                                    }
-//                                }
-//                            }
-//                        }
-//                        else
-//                            break;
-//                    }
-//                    else
-//                        break;
-//                }
-//            }
-//            else
-//                break;
-//        }
-//    }
-//    cout << "YES\n";
-//}
-
-
-
-
 int main (int argc, char* argv[])
 {
     int task;
@@ -849,8 +752,6 @@ int main (int argc, char* argv[])
 
     task = atoi(argv[1]);
 
-    //LexicalAnalyzer lexer;
-
     ReadGrammar();  //Read the grammar as mentioned in the assignment
 
     switch (task) {
@@ -861,68 +762,10 @@ int main (int argc, char* argv[])
             break;
 
         case 3: CalculateFirstSets();
-            //print
-            for (auto i: all_elements)
-            {
-                int num1 = 0;
-                if (count(non_terms.begin(), non_terms.end(), i)) {
-                    auto itr0 = find(indexOf_first_sets.begin(), indexOf_first_sets.end(), i);
-                    int indexD = distance(indexOf_first_sets.begin(), itr0);
-                    cout << "FIRST(" << i << ") = { ";
-                    for (auto k: universe)
-                    {
-                        if (count(first_sets[indexD].begin(), first_sets[indexD].end(), k))
-                        {
-                            num1++;
-                            //not the last one
-                            if (num1 != first_sets[indexD].size())
-                            {
-                                cout << k << ", ";
-                            }
-                            else
-                            {
-                                cout << k << " ";
-                                break;
-                            }
-                        }
-
-                    }
-                    cout << "}\n";
-                }
-            }
-
+                printFirstSets();
             break;
 
         case 4: CalculateFollowSets();
-            //print
-            for (auto i: all_elements)
-            {
-                int num1 = 0;
-                if (count(non_terms.begin(), non_terms.end(), i)) {
-                    auto itr0 = find(indexOf_follow_sets.begin(), indexOf_follow_sets.end(), i);
-                    int indexD = distance(indexOf_follow_sets.begin(), itr0);
-                    cout << "FOLLOW(" << i << ") = { ";
-                    for (auto k: universe)
-                    {
-                        if (count(follow_sets[indexD].begin(), follow_sets[indexD].end(), k))
-                        {
-                            num1++;
-                            //not the last one
-                            if (num1 != follow_sets[indexD].size())
-                            {
-                                cout << k << ", ";
-                            }
-                            else
-                            {
-                                cout << k << " ";
-                                break;
-                            }
-                        }
-
-                    }
-                    cout << "}\n";
-                }
-            }
             break;
 
         case 5:
@@ -935,4 +778,3 @@ int main (int argc, char* argv[])
     }
     return 0;
 }
-
